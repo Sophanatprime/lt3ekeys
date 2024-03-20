@@ -1,0 +1,1115 @@
+% !TEX options=--synctex=1 --shell-escape --interaction=nonstopmode %DOCFILE%
+% !TEX program=xelatex
+% \DocumentMetadata{}
+\documentclass[openany]{book}
+\InputIfFileExists{eg-config.tex}{}{}
+\usepackage{amsmath,amssymb}
+\PassOptionsToPackage{silent}{xeCJK}
+\usepackage{ctex}
+\usepackage{xunicode,xeCJKfntef}
+\edef\UD{\string _}
+\usepackage{xunicode-addon}
+\usepackage[library={ref,box,bnf,doc}]{cus}
+\newcommand{\hook}{\cmd[module=hook point,type=hook point]}
+\setuplayout{paper=a4,hmargin=1.7cm,top=2cm,bottom=1.5cm,
+  hfoffset=0pt,nomarginpar,
+  columnsep=35pt,headsep=10pt,footskip=30pt,}
+\pagestyle{fancy}
+\sethead [l] {{\CusTeX} --- 定义 \veta{ekeys-cmd}}
+\sethead [r] {Page -- \thepage}
+\setfoot {}
+\setheadrulewidth {1pt}
+\usepackage{graphicx,xcolor}
+\graphicspath{{./image}{../image}{../}}
+\usepackage{unicode-math}
+% \setmainfont{texgyrepagella}[
+%   Extension      = .otf,
+%   UprightFont    = *-regular,
+%   BoldFont       = *-bold,
+%   ItalicFont     = *-italic,
+%   BoldItalicFont = *-bolditalic]
+\setmainfont{TeXGyreTermesX}[
+  Extension      = .otf,
+  UprightFont    = *-Regular,
+  BoldFont       = *-Bold,
+  ItalicFont     = *-Italic,
+  BoldItalicFont = *-BoldItalic,
+  SlantedFont    = *-Slanted,
+  BoldSlantedFont= *-BoldSlanted]
+\setsansfont{texgyreheros}[
+  Extension      = .otf,
+  UprightFont    = *-regular,
+  BoldFont       = *-bold,
+  ItalicFont     = *-italic,
+  BoldItalicFont = *-bolditalic]
+\setmonofont{cmun}[
+  Extension      = .otf,
+  UprightFont    = *btl,
+  BoldFont       = *tb,
+  ItalicFont     = *bto,
+  BoldItalicFont = *tx,
+  HyphenChar     = None]
+\setmathfont{XITS Math}
+\usepackage{array,booktabs,tabularx,makecell}
+\usepackage{enumitem}
+\setlist{nosep}
+\setlist[enumerate,1]{leftmargin=\ccwd,itemindent=\ccwd,listparindent=2\ccwd}
+\setlist[itemize,1]{label=$\smblkdiamond$,leftmargin=\ccwd,itemindent=\ccwd,listparindent=2\ccwd}
+\setlist[itemize,2]{label=\textbullet,leftmargin=\ccwd,itemindent=\ccwd,listparindent=2\ccwd}
+\setlist[itemize,3]{label=$\smwhtcircle$}
+\usepackage[colorlinks]{hyperref}
+\usepackage[numbered]{bookmark}
+\usepackage{nameref,varioref,cleveref}
+\usepackage[many,listings,minted]{tcolorbox}
+\newcounter{example}
+\newtcblisting[use counter=example, number format=\arabic, crefname={代码}{代码}]
+  {examcode}[2][]{listing and text, 
+  title=代码 \thetcbcounter, enhanced,
+  comment={#2},
+  sharp corners=downhill, arc=12pt, %skin=bicolor,
+  fontupper=\linespread{1}\selectfont, left=6pt,
+  colback=blue!1!white, colframe=blue!75!black,colbacklower=white,
+  segmentation style={draw=blue,thick,solid},
+  attach boxed title to top right={yshift=-\tcboxedtitleheight},
+  boxed title style={
+    colframe=blue!75!black,colback=blue!15!white,
+    sharp corners=downhill,arc=12pt,
+  },
+  coltitle=blue!90!black, fonttitle=\bfseries,
+  before skip balanced=2bp plus .5\baselineskip,
+  after skip balanced=2bp plus .5\baselineskip,
+  % listing options={style=tcblatex, basicstyle=\normalsize\ttfamily},
+  listing engine=minted,minted style=colorful,
+  minted language=tex,
+  minted options={tabsize=2,fontsize=\normalsize,autogobble,mathescape,
+    xleftmargin=0pt,xrightmargin=0pt},
+  breakable,
+  #1
+}
+\fvset{formatcom=\xeCJKVerbAddon,xleftmargin=2cm,xrightmargin=2cm,
+  vspace=\smallskipamount}
+
+\setlength{\abovecaptionskip}{3pt plus 2pt}
+\setlength{\belowcaptionskip}{3pt plus 2pt}
+\setlength{\intextsep}{3pt plus 5pt}
+\setlength{\floatsep}{3pt plus 5pt}
+\setlength{\textfloatsep}{3pt plus 5pt}
+
+\cussetup[texbnf]{hyper,
+  geometry={\leftmargin2cm \rightmargin2cm \topsep\smallskipamount}}
+\crefformat{section}{第 #2#1#3 节}
+\crefformat{table}{表 #2#1#3}
+\def\thesection{\texorpdfstring{\S\ }{\S}\arabic{section}} 
+\def\theHsection{\arabic{section}}
+\setuptitle[section]{number=\thesection,format=\large\bfseries,
+  beforeskip=3pt plus2pt minus2pt,afterskip=3pt plus2pt minus2pt}
+
+\makeatletter
+\renewcommand\@makefnmark{\hbox{\hskip.1em\textsuperscript
+  {\ExpandArgs{f}\textcircled{\@thefnmark}}}}
+\renewcommand\@makefntext[1]{\noindent\ExpandArgs{f}\textcircled{\@thefnmark}\ #1}
+\newcommand\ssep{\smallskip}
+\newcommand\bsep{\bigskip}
+
+\def\maketitle{\bookmark[dest=Doc-Start,level=1]{\thesection\ 封面}%
+  \begin{titlepage}%
+  \let\footnotesize\small
+  \let\footnoterule\relax
+  \let \footnote \thanks
+  \null\vfil
+  \vskip 60\p@
+  \begin{center}%
+    {\LARGE \@title \par}%
+    \vskip 3em%
+    {\large
+     \lineskip .75em%
+      \begin{tabular}[t]{c}%
+        \@author
+      \end{tabular}\par}%
+      \vskip 1.5em%
+    {\large \@date \par}%       % Set date in \large size.
+  \end{center}\par
+  \vskip 2cm
+  \def\@pnumwidth{1.1em}\def\@tocrmarg{1.2em plus 5pt minus 5pt}\def\@dotsep{3}%
+  \SetPlainTocLevelCode{section}{\@dottedtocline{1}{0em}{.7em}{##5}{##6}}%
+  \multicolplaincombinedlist[2,ragged,shorten=1cm,column-sep=2em]{}{toc}%
+  \@thanks
+  \vfil\null
+  \end{titlepage}%
+  \setcounter{footnote}{0}%
+  \global\let\thanks\relax \global\let\maketitle\relax
+  \global\let\@thanks\@empty \global\let\@author\@empty
+  \global\let\@date\@empty \global\let\@title\@empty
+  \global\let\title\relax \global\let\author\relax
+  \global\let\date\relax \global\let\and\relax
+}
+
+\ExplSyntaxOn
+\NewDocumentCommand \token { O{12} +m }
+  {
+    \mode_leave_vertical: { \cs_set_eq:NN \\ \c_backslash_str
+    \dim_set:Nn \fboxsep { 2pt } \ttfamily 
+    \tl_if_blank:nTF {#2}
+      { 
+        \textvisiblespace 
+        \tl_if_empty:nT {#1} \use_none:nn \textsubscript {#1} 
+      }
+      {
+        \str_set:Nx \l_tmpa_str {
+          \bool_lazy_and:nnTF
+            { \tl_if_single_token_p:n {#2} }
+            { \tl_if_head_eq_catcode_p:nN {#2} \scan_stop: }
+            { \cs_to_str:N #2 }
+            { #2 }
+        }
+        \tl_replace_all:Nnn \l_tmpa_str { ~ } { \textvisiblespace }
+        \tl_if_single:NTF \l_tmpa_str
+          { \l_tmpa_str \tl_if_empty:nT {#1} \use_none:nn \textsubscript {#1} }
+          { \fbox { \vphantom{fp}\l_tmpa_str } }
+      }
+  } }
+\ExplSyntaxOff
+\makeatother
+
+% \raggedbottom 
+\title{定义 \veta{ekeys-cmd}}
+\author{雾月\quad Longaster}
+\begin{document}
+
+\enablecombinedlist
+\maketitle
+
+\section{前言}
+
+\pkg{lt3ekeyscmd} 和 \pkg{lt3ekeysext} 这两个宏包提供了一个定义命令的新接口。
+它的使用方式类似于 \pkg{ltcmd} 的 \cs{DeclareDocumentCommand}，功能更加丰富的同时
+也更加复杂。本文介绍详细介绍一下这两个宏包以及它们的前置宏包——\pkg{collectn}，
+这个宏包在定义获取特殊的参数的命令时是非常有用的。
+
+以下称由 \cs{NewDocumentCommand} 系列命令定义的命令为 \veta{document-cmd}，
+包括它们的完整复制\footnote{即由 \cs{NewCommandCopy}、\cs{RenewCommandCopy}、\cs{DeclareDocumentCopy} 复制的。}。
+
+首先来看看 \cs{DeclareDocumentCommand} 的用法。
+\begin{syntax}
+  \V\DeclareDocumentCommand <cmd> <{arg spec}> <{code}>
+\end{syntax}
+这 \meta{cmd} 就是要定义的命令，\meta{arg spec} 是参数说明符列表，\meta{code} 是命令的定义。
+
+参数说明符（argument specification）是用来标识参数性质的单个字母，有的参数说明符还可能需要
+一些额外的信息。“参数性质”就是告诉 \LaTeX 以什么方式获取这个参数，以及传递给实参什么内容。
+例如有的参数是通过某个符号是否出现来传递给实参不同的内容，有的参数包裹在一对 \verb|[ ]| 里，
+有的参数传递给实参是一些键值对，有的还需对获取的参数经过一些处理再作为实参，等等。
+根据这些性质的不同，就有了各样的参数类型，不同的参数类型就是根据参数说明符（以及可能的额外信息）
+来标识的。
+
+参数可以分为必须给出的（即如果没有则会出错），和可选的（即不给出也能正常执行）。
+定义 \veta{document-cmd} 可用的说明符如下：
+\begin{itemize}
+  \item 必须的：\texttt m、\texttt r、\texttt R、\texttt v 以及 \texttt b（仅能在定义环境时使用）；
+  \item 可选的：\texttt o、\texttt d、\texttt O、\texttt D、\texttt s、\texttt t、\texttt e、\texttt E。
+\end{itemize}
+这些参数类型在 \LaTeXe 内核中定义，可以直接使用。此外，
+还有标记为过时的：
+\begin{itemize}
+  \item 必须的：\texttt l、\texttt u；
+  \item 可选的：\texttt g、\texttt G；
+\end{itemize}
+它们仅能在加载 \pkg{xparse} 宏包后使用，且定义 \veta{document-cmd} 时一般不推荐使用。
+
+除了参数说明符还有几种参数修饰符，它们可以放在说明符的前面，用于修饰这些参数类型：
+\texttt +、\texttt !、\texttt =、\texttt >。
+
+本文在此并不准备对这些参数类型和修饰符进行说明。不过，\veta{ekeys-cmd} 和 
+\veta{document-cmd} 的相同参数类型其用法基本相同，且本文会对前者进行详细介绍，因此，读者
+若不了解上述参数说明符也可继续阅读下去。
+如若想了解上述参数类型和修饰符的用法，可参考 \file{usrguide.pdf}。
+
+\section{复制和显示命令}
+
+\veta{document-cmd} 除了可以使用 \cs{NewDocumentCommand} 系列命令定义外，还可
+通过复制另一个 \veta{document-cmd} 得到。不过必须是“完整复制”。
+\begin{syntax}
+  \V\DeclareCommandCopy \meta{new cmd} \meta{old cmd}
+\end{syntax}
+\cs{DeclareCommandCopy} 系列命令不仅可以完整复制由 \cs{newcommand}、
+\cs{DeclareRobustCommand} 定义的命令，还可以完整复制 \veta{document-cmd} 和 
+\veta{ekeys-cmd}。
+
+在终端中显示命令的定义也很简单，使用 \cs{ShowCommand}\marg{cmd} 即可，
+同样支持由 \cs{newcommand}、\cs[break-at-any]{DeclareRobustCommand} 定义的命令，
+以及 \veta{document-cmd} 和 \veta{ekeys-cmd}。
+
+\section{通用命令钩子}
+
+通用命令钩子就是形如 
+\hook{cmd/\meta{cmd name}/before} 或 \hook{cmd/\meta{cmd name}/after}
+的钩子。通用命令钩子无需声明即可使用。前者在命令最开始时执行，后者在命令最末尾执行。
+
+\cs{AddToHook}、\cs{AddToHookWithArguments}、\cs{AddToHookNext}、
+\cs{AddToHookNextWithArguments} 这四个命令用于给通用命令钩子添加代码。
+对于没有声明的命令钩子，可以
+自动为命令添加使用钩子的代码 \cs[break-at-any]{UseHookWithArguments}（本文称为自动“修补”），
+同样支持由 \cs{newcommand}、\cs{DeclareRobustCommand} 定义的命令，
+以及 \veta{document-cmd} 和 \veta{ekeys-cmd}。
+
+不过自动添加 \cs{UseHookWithArguments} 并非总会执行。
+\begin{itemize}
+  \item 对于已经声明的命令钩子，不会自动添加 \cs{UseHookWithArguments};
+  \item 对于在导言区使用的 \cs{AddToHook} 系列命令，自动修补在 \hook{begindocument} 钩子中才会执行；
+  \item 对于在正文区使用的 \cs{AddToHook} 系列命令，自动修补仅执行一次，命令重定义以后不会再执行自动修补，因为已经自动声明了这个钩子。
+\end{itemize}
+
+自动修补并不总是有效，有时甚至会导致严重的错误。例如：
+\begin{Verbatim}
+\newcommand\fancybox{\@ifnextchar({\@fancybox}{\@fancybox(5cm)}}
+\def\@fancybox(#1)#2{\fbox{\parbox{#1}{#2}}}
+\end{Verbatim}
+倘若想在 \verb|\fancybox| 后面添加一些代码，使用
+\begin{Verbatim}
+\AddToHook{cmd/fancybox/after}{<code>}
+\end{Verbatim}
+结果是 \verb|\fancybox| 变成了：
+\begin{Verbatim}
+\newcommand\fancybox{\@ifnextchar({\@fancybox}{\@fancybox(5cm)}%
+  \UseHookWithArguments{cmd/fancybox/after}{0}}
+\end{Verbatim}
+会导致严重的错误。
+
+因此若要使用命令钩子，最佳实践是在定义命令时就加上 \cs{UseHookWithArguments}：
+\begin{Verbatim}
+\newcommand\fancybox{\@ifnextchar({\@fancybox}{\@fancybox(5cm)}}
+\def\@fancybox(#1)#2{\fbox{%
+  \UseHookWithArguments{cmd/fancybox/before}{2}{#1}{#2}%
+  \parbox{#1}{#2}%
+  \UseHookWithArguments{cmd/fancybox/after}{2}{#1}{#2}}}
+\end{Verbatim}
+
+当然，使用了 \cs{UseHookWithArguments} 后需要更长的执行时间，具体如何做就需要自行斟酌了。
+
+关于钩子和命令钩子的具体用法，见 \file{lthooks-doc.pdf} 和 \file{ltcmdhooks-doc.pdf}
+
+\section{控制序列获取其需要的参数}
+
+根据 \TeX 中控制序列获取其需要的参数的方式总体可分为两类：一类是 \TeX 语法规定的，另一类
+是定义宏时设置的。前者基本固定，只需阅读 \TeX 引擎的文档即可知晓；而后者则可以十分灵活。
+
+在 \LaTeX 格式下，命令获取参数的规则有许多一致的地方，例如命令后面跟着一个可选的 \verb|*|，
+或者是跟着可选的一个或多个由 \verb|[ ]| 包裹的实参，最常见的就是由一对 \verb|{ }| 包裹的实参。
+
+而由一对 \verb|{ }| 包裹的“实参”从可使用的 \verb|{ }| 上看又有多种情况：
+\begin{enumerate}
+  \item\label{item:single} 是除了显式的左括号（记为 \BNFanchor{left brace}）、右括号（记为 \BNFanchor{right brace}）和空格\footnote{显式字符就是有唯一类别码的普通字符，隐式字符就是被 \tn{let} 为显式字符的控制序列或活动字符。显式的左、右括号和空格就是类别码分别为 1、2、10 的字符。}之一的单个记号（token），此时无需加上 \BNFN{left brace} 和 \BNFN{right brace}；
+  \item[1$'$.]\label{item:eler} 由 \BNFN{left brace} 和 \BNFN{right brace} 包裹，且它们之间的 \BNFN{left brace} 和 \BNFN{right brace} 数量保持平衡\footnote{所谓“保持平衡”即数量一致。}；
+  \item\label{item:ler} 由 \BNFT{\{} （表示显式的或隐式的类别码\footnote{“类别码”是一个字符记号拥有的属性，在 \XeTeX 和 \LuaTeX 中，每一个字符都有唯一的字符码（就是它的 Unicode 编码）和类别码。可以修改字符的类别码为任何有效的值。\pdfTeX、\XeTeX、\LuaTeX 中类别码的有效值和它们的含义见\cref{tab:catcode}。}为 1 的字符）以及 \BNFN{right brace} 包裹，且它们之间的 \BNFN{left brace} 和 \BNFN{right brace} 数量保持平衡；
+  \item\label{item:sler} 由某一特定的类别码为 1 的显式字符和 \BNFN{right brace} 包裹，且它们之间的 \BNFN{left brace} 和 \BNFN{right brace} 数量保持平衡；
+  \item\label{item:silsir} 由某一特定的隐式左、右括号包裹，且它们之间的 \BNFN{left brace} 和 \BNFN{right brace} 数量保持平衡；
+  \item\label{item:lr} 由 \BNFT{\{} 和 \BNFT{\}} 包裹。
+\end{enumerate}
+其中 第 \ref{item:single} 和 \ref{item:eler}$'$ 可认为是一类。
+\LaTeX 格式中，大部分命令都使用第 \ref{item:single} 类（含 1$'$，如无特别说明，以后同），
+除了那些暴露的 \TeX 原语。
+
+\LaTeXiii 则区分 \ref{item:single} 和 1$'$，前者为 \texttt N 类型，后者为 \texttt n 类型。
+实际使用时，尽管在某些情况下它们可以混用，但仍然有例外\footnote{如 \cs{token_to_str:N}、\cs{token_to_meaning:N} 的参数可以是任意记号，\cs{tl_to_str:n}、\cs{exp_not:n} 可以是第 1$'$ 或第 \ref{item:ler} 类，但不能是第 \ref{item:single} 类。}，因此最好严格按照类型指定的用法使用，至少这样不会出错。除非你了解这些命令的定义并且确信它们不会更改。
+
+\section{\pkg{lt3ekeyscmd} 和 \pkg{lt3ekeysext} 简介}
+
+\pkg{lt3ekeyscmd} 提供定义 \veta{ekeys-cmd} 的主要接口，\pkg{lt3ekeysext}
+扩展了前者的功能，提供了几个参数修饰符和额外的参数说明符，并且支持自定义参数获取方式。
+加载 \pkg{lt3ekeysext} 对 \veta{ekeys-cmd} 的使用上没有任何影响，且功能更强大，
+推荐直接加载 \pkg{lt3ekeysext}。本文示例代码也建立在加载 \pkg{lt3ekeysext} 的基础上。
+
+可通过 \cs{DeclareEKeysCommand} 来定义 \veta{ekeys-cmd}：
+\begin{syntax}
+  \V\DeclareEKeysCommand   \meta{cmd} \marg{arg spec} \marg{code}
+  \V\DeclareEKeysCommand * \meta{cmd} \marg{arg spec} \marg{code}
+\end{syntax}
+\cs{DeclareEKeysCommand} 和 \cs{DeclareDocumentCommand} 使用上几乎没有区别，
+只是前者还支持星号可选参数，它的功能后面再说明。
+\cs{DeclareEKeysCommand} 也可以写为 \cs{ekeysdeclarecmd}。
+
+以下列出 \veta{ekeys-cmd} 可用的参数说明符，其中在 \pkg{lt3ekeyscmd} 中定义的有：
+\begin{itemize}
+  \item 必须的：\texttt m、\texttt r、\texttt R、\texttt l、\texttt u、\texttt U；
+  \item 可选的：\texttt o、\texttt O、\texttt d、\texttt D、\texttt s、\texttt t、\texttt p、\texttt P、\texttt k、\texttt t、\texttt T、\texttt e、\texttt E、\texttt w、\texttt W、\texttt g、\texttt G。
+\end{itemize}
+在 \pkg{lt3ekeysext} 中定义的有：
+\begin{itemize}
+  \item 必须的：\texttt c、\texttt C；
+  \item 自定义的：\texttt K；
+  \item 预处理指示符：\texttt ?；
+  \item 参数修饰符：\texttt\&、\texttt\#、\texttt @。
+\end{itemize}
+
+其中，\veta{document-cmd} 标记为过时的 \texttt g、\texttt G、\texttt l、\texttt u 
+参数类型，\veta{ekeys-cmd} 是直接支持的，不过其行为略有不同。在此，我们不讨论
+“应该做什么、不应该做什么”，而注重讨论“能做什么”和“怎么做”。这也是 
+\pkg{lt3ekeyscmd} 和 \pkg{lt3ekeysext} 的作者编写这两个宏包所遵循的原则。
+至于要不要这么做，则交由读者自行考量。
+
+这其中有两个参数类型使用了同一个参数说明符，但使用时会有区别，因此即使如此也不会混淆。
+
+\veta{ekeys-cmd} 的参数说明符与 \veta{document-cmd} 相同的部分，其用法和作用基本相同，
+不过也有例外的情况，在此先做概述，待后文详细说明：
+\begin{itemize}
+  \item 所有参数都是 \tn{long}，即都可以包含 \token{par}\footnote{\token{par} 表示一个控制序列，它的名字为 \texttt{par}。}；
+  \item 向后寻找可选参数时，忽略空格。但这未来可能会更改；
+  \item 带有定界符的参数类型，如 \texttt r、\texttt d，默认情况下是不会处理嵌套的定界符的，但可以在该参数说明符的前面加上 \texttt @，这样就会处理嵌套的定界符了。
+  \item 有默认值的参数类型，默认情况下是不会处理用 \verb|#1| 等引用其它实参的，但可以使用带星号的 \cs[break-at-any]{DeclareEKeysCommand}，这样就和 \veta{document-cmd} 一样了。不过默认值之间不能循环引用。\footnote{关于默认值，另外还有一种情况与 \veta{document-cmd} 不同：当默认值引用了其它实参，且此参数的值为特殊的 -NoValue- 标记时，\veta{ekeys-cmd} 不会进行引用替换，而 \veta{document-cmd} 会。由于该特殊的标记是内部值，用户一般不能输入，但若放在另一个 \veta{document-cmd} 或 \veta{ekeys-cmd} 则是可能的。}
+  \item \texttt s 和 \texttt t 参数类型及带定界符的参数类型，还可以通过加上 \texttt\& 修饰符，使得其实参为等价的原始输入，而不是布尔值或移除掉定界符的结果。
+  \item \texttt e 和 \texttt E 参数类型，在 \veta{document-cmd} 其中的 \meta{tokens} 是不能重复的，但 \veta{ekeys-cmd} 却可以。
+  \item \texttt g 和 \texttt G 参数类型，在寻找其参数时，左括号既可以是显式的，又可以是隐式的；且若没有发现左括号，而发现的是 \tn{relax}（或 \tn{ifx} 判断与之相等），则会移除这个 \tn{relax} 后再继续寻找之后的参数。这样在实际使用时，可以用 \tn{relax} 阻止 \texttt G 参数获取实参，又不会干扰其它参数获取实参；
+  \item “处理器” vs. “预处理器”。与 \veta{document-cmd} 对偶的，\veta{ekeys-cmd} 使用的是预处理器机制。且 \veta{document-cmd} 的处理器不能是 \veta{document-cmd}，换句话说，\veta{document-cmd} 不能嵌套。\veta{ekeys-cmd} 则没有这个限制。
+\end{itemize}
+
+除了直接定义命令外，\pkg{lt3ekeyscmd} 还支持不使用 \veta{ekeys-cmd} 而直接收集参数：
+\begin{syntax}
+  \V\DeclareEKeysCollector   \meta{collector cmd} \marg{arg spec}
+  \V\DeclareEKeysCollector * \meta{collector cmd} \marg{arg spec} \meta{collect to cmd} \marg{do code}
+  \V\ekeyscollectargs   \meta{collect to cmd} \meta{ekeys-cmd} \marg{do code} \meta{args}
+  \V\ekeyscollectargs * \meta{collect to cmd} \marg{arg spec} \marg{do code} \meta{args}
+\end{syntax}
+这个命令根据 \meta{ekeys-cmd} 获取参数的方式，或指定的 \meta{arg spec} ，
+从 \meta{args} 收集参数并保存到 \meta{collect to cmd} 里，然后执行 \meta{do code}。
+使用 \cs{DeclareEKeysCollector} 定义的命令称为 \veta{ekeys-collector}。
+
+其中，使用 \verb|\DeclareEKeysCollector| 和 \verb|\ekeyscollectargs*| 时，
+\meta{arg spec} 的数量不限，可以获取超过 9 个参数。
+
+从执行同一作用的命令的执行时间来看，\veta{document-cmd} 长于 \veta{ekeys-cmd} 
+长于 \veta{ekeys-collector} 约等于使用不带星号的 \cs{ekeyscollectargs} 直接收集参数。
+
+\begin{syntax}
+\V\ekeyscollectorarg \marg{arg number}
+\end{syntax}
+获取第 \meta{arg number} 个参数。可以用于上面四个命令的 \meta{do code} 中。
+会在值不存在时返回 \cs{q_no_value}，可使用 \cs{IfQuarkNoValueTF} 判断是否为该值。
+\cs{IfNoValueTF} 用于判断是否为特殊的 -NoValue- 标记，它是用来判断可选参数是否有值的。
+
+\section{常用的参数类型——\texttt m、\texttt R、\texttt D、\texttt t}\label{sec:fq-used}
+
+本节介绍最为常用的参数类型：\texttt m、\texttt r、\texttt R、\texttt o、\texttt O、
+\texttt d、\texttt D、\texttt s、\texttt t。
+
+对于一个完整的参数类型 \meta{full spec}，
+构成为 \meta{spec} 或 \meta{spec}\marg{default}，其中 \meta{spec} 为
+\meta{spec name}\meta{args}。\meta{spec name} 就是标识参数类型的字母，
+\meta{args} 是参数类型需要的参数，\meta{default} 也可算作是参数，不过这里单独区分它们。
+就是说，\meta{full spec} 为 \meta{spec name}\meta{args or none}\marg{default or none}。
+
+一般情况下，如未特别说明，显式或隐式的空格、左括号、右括号、宏变量字符（一般为 \verb|#|）
+都不能包含在说明符的 \meta{args} 里。
+
+\texttt m 类型的参数获取的实参是第 \ref{item:single} 类带 \verb|{ }| 的。
+
+\texttt r、\texttt R、\texttt o、\texttt O、\texttt d、\texttt D 通过是否给出
+指定的定界符来判断是否给出此实参。对于前两个，如果没有给出实参就会出错。
+大小写的区别是，大写的说明符用法为 \meta{spec}\marg{default}，即还需给说明符一个参数，
+表示如果没有给出实参，则用此作为实参。
+而小写的说明符设置 \meta{default} 为一个特殊的标记：\UseName{c_novalue_tl}，
+可以用 \cs{IfNoValue(TF)} 和 \cs{IfValue(TF)} 判断实参是否为此标记。
+
+对于 \texttt R 和 \texttt D（以及对应的小写。若大小写的功能类似，只有
+带与不带 \meta{default} 的区别，则只写大写，以后同）；\meta{spec} 为
+\meta{spec name}\meta{token_1}\meta{token_2}。
+对于 \texttt O，\meta{spec} 为 \meta{spec name}，相当于 \verb|D[]|。
+\meta{spec name} 就是这几个说明符之一，
+\meta{token_1} 和 \meta{token_2} 是单个字符或控制序列。
+如 \verb|R(){NaN}|、\verb|o|、\verb|O{NaN}| 等都是正确的。
+
+这几类带定界符的参数，默认情况下是不支持嵌套的，不过可以在它们前面加上 \texttt @ 修饰符，
+来标记此参数需要处理嵌套的情形。并且判断定界符是否出现只会检查此定界符对的左定界符是否出现，
+若左定界符出现了而右定界符没有出现，则会出错。
+
+对于 \texttt s 和 \texttt t 通过是否给出指定的字符或控制序列来给出 \cs{BooleanTrue}
+或 \cs{BooleanFalse}，可通过 \cs[break-at-any]{IfBoolean(TF)} 判断为何者。
+\meta{spec} 为 \verb|t|\meta{token}，\texttt s 相当于 \verb|t*|。
+
+对于 \meta{token} 的判断，是很严格的。如果是一个字符，则字符码和类别码都必须一致；
+如果是一个控制序列，则是控制序列的名字一致。
+在通过是否给出指定的记号来判断是否给出实参时，所有参数类型都遵循这个规则。
+
+上面这些参数类型，除了 \texttt m 外，支持加上 \texttt\& 修饰符，这样实参为等价的原始输入。
+参数的默认值\emph{不会}自动加上定界符。如果一个命令有带定界符的参数，而它的定义使用了
+也有带定界符参数的命令，使用此前缀能减少大量的 \cs{IfValue(TF)} 判断。如：
+\begin{Verbatim}
+\DeclareEKeysCommand \mycaption { & s &@ O{} m } {<some code>\caption#1#2{#3}}
+\end{Verbatim}
+如果出现了 \verb|*| 或 \verb|[]| 可选参数，那么会 \verb|#1| 为 \verb|*|，
+而 \verb|#2| 为 \verb|[{args}]|，这样省略了大量重复的 \verb|\If..| 判断。
+
+由于 \veta{ekeys-cmd} 不支持 \texttt= 修饰符，且若设置了 \texttt\& 修饰符，那么会自动
+在定界符中间加上一对 \verb|{}|，这会干扰 \veta{document-cmd} 判断其参数是否为键值对。
+读者需注意这种情况。
+
+\begin{examcode}{}
+\DeclareEKeysCommand \faa { &s O{} &d() m } {\detokenize{[#1|#2|#3|#4]}}
+\DeclareEKeysCommand \fbb { s @O{} @d() m } {\detokenize{[#1|#2|#3|#4]}}
+\DeclareEKeysCommand \fcc { s @o @d() m } 
+  {\IfBooleanTF{#1}{starred}{non-starred}, %
+    \IfValueTF{#2}{b valued}{b no-valued}, %
+    \IfNoValueTF{#3}{p no-valued}{p valued}, %
+    \{#4\}}
+\ttfamily\obeylines
+\faa * ({paren(p)}) m; \faa [{bracket[b]}] {mandatory};
+\fbb * (paren(p)) m;   \fbb [bracket[b]] {mandatory};
+\fcc * (paren(p)) m;   \fcc [bracket[b]] {mandatory};
+\end{examcode}
+
+使用 \cs{ekeyscollectorarg} 或 \cs{tl_item:Nn} 即可获取 \veta{ekeys-collector} 
+保存的参数的值。
+
+\begin{examcode}{}
+\DeclareEKeysCollector \faa { m m @o @d() m m m m m m m }
+\faa\tmp{\meaning\tmp.} 12 [[B]](b(b)) 56789ABCD.
+\faa\tmp{\edef\tmp{\ekeyscollectorarg{10}}\meaning\tmp.} % 把第10个值保存到 \tmp
+  12 [[a]](b(b)) 56789ABCD.
+
+\DeclareEKeysCollector*\fbb { m m @o @d() m m m m m m m } \tmp {\meaning\tmp.}
+\fbb 12 [[B]](b(b)) 56789ABCD.
+\end{examcode}
+
+\section{获取某些记号之前的内容——\texttt l、\texttt u、\texttt U}
+
+本节介绍的是可获取某些（某个）记号之前的所有内容的参数类型：\texttt l、\texttt u、\texttt U。
+
+\texttt l 的 \meta{full spec} 为 \verb|u|。它获取的是字符码为 123，类别码为 1 
+的记号（也就是通常的左括号 \verb|{|）之前的所有内容。\iffalse}\fi % for latex-workshop
+如果不存在这样的左括号，那么将会出错。
+
+\texttt u 的 \meta{full spec} 为 \verb|u|\marg{tokens_1}，
+\texttt U 的 \meta{full spec} 为 \verb|U|\marg{tokens_1}\marg{tokens_2}。
+它们获取的是 \meta{tokens_1} 之前的所有内容，并移除 \meta{tokens_1}。
+\texttt U 还会在移除 \meta{tokens_1} 之后留下 \meta{tokens_2}。
+
+\texttt u 和 \texttt U 支持使用 \texttt\# 修饰符来加快执行速度。
+
+\begin{examcode}{}
+\DeclareEKeysCommand \faa { u{\relax\empty} l } {\detokenize{[#1|#2]}}
+\DeclareEKeysCommand \fbb { # U{jk}{lm} l } {\detokenize{[#1|#2]}}
+\ttfamily\obeylines
+\faa a list tokens \relax end \relax\empty {?};
+\fbb a b c i j k jk{?};
+\end{examcode}
+
+\section{判断记号是否出现——\texttt t、\texttt p、\texttt P、\texttt k、\texttt T}
+
+本节介绍的是用来判断记号是否出现的参数类型：\texttt s、\texttt t、\texttt p、\texttt P、
+\texttt k。其中 \texttt s 和 \texttt t 已经在\cref{sec:fq-used}介绍过了。
+
+\texttt p 的 \meta{full spec} 为 \verb|p|\marg{tokens}，
+\texttt P 的 \meta{full spec} 为 \verb|P|\marg{tokens}\marg{indexed}。
+它们用来判断 \meta{tokens} 中的某一个记号是否出现，如果出现了，
+对于 \texttt p，其实参为该记号在 \meta{tokens} 中的位置，若没有出现实参为 0；
+对于 \texttt P，其实参为用该记号在 \meta{tokens} 中的位置索引 \meta{indexed}，
+\meta{indexed} 的长度为 \meta{tokens} 的长度加一，即 \texttt p 的完整 
+\meta{full spec} 为：
+\verb|P| \texttt{\{\meta{token_1}\meta{token_2}...\meta{token_n}\}
+\{\marg{entry_0}\marg{entry_1}\marg{entry_2}...\marg{entry_n}\}}。
+它们支持 \texttt\# 修饰符。\texttt p 支持 \texttt\& 修饰符。
+
+\texttt k 的 \meta{full spec} 为 \verb|k|\marg{keyword}，用来判断关键字 \meta{keyword}
+是否出现。为了判断 \meta{keyword} 是否存在，它会自动展开后面的内容。
+\meta{keyword} 被转化为普通字符，且忽略大小写和类别码\footnote{严格地来说，“转化为普通字符”是
+先对 \meta{keyword} 执行 \tn{detokenize}（\cs{tl_to_str:n}），然后把
+字符码为 32、类别码为 10 的字符替换为字符码为 32、类别码为 12 的字符。
+“忽略类别码”不会忽略类别码为 1、2、10、13 的字符，它们会终止展开和判断。}。
+实参为 \cs{BooleanTrue} 和 \cs{BooleanFalse} 之一。它支持 \texttt\& 修饰符。
+
+\texttt t 和 \texttt T 的 \meta{spec} 为 \meta{spec name}\marg{paired tokens}，
+用于判断多个定界符对 \meta{paired tokens} 中的某一对是否出现，\texttt T 还可设置默认值。
+它们占用 2 个参数，前一个为该字符对在 \meta{paired tokens} 中的位置，若没有出现则为 0。
+后一个实参为定界符中间的内容，若没有则为设置的默认值。
+这些定界符每对的第二个还可以为空或空格。每对第一个必须不同，第二个可以相同。
+它们支持 \texttt\#、\texttt @、\texttt\& 修饰符，且使用 \texttt\& 时会自动使用 \texttt\#。
+
+注意到 \texttt t 说明符有两个用法，一个为 \verb|t|\meta{token}，另一个为 
+\verb|t|\marg{paired tokens}，它们是完全不同的类型。\meta{token} 只能有一个记号，
+而 \meta{paried tokens} 的内容是成对存在的，至少有 2 项。
+
+\begin{examcode}{}
+\DeclareEKeysCommand \faa { p{*+.} k{shipout} } {\detokenize{[#1|#2]}}
+\DeclareEKeysCommand \fbb { P{*+.}{{}*+.} &k{shipout} }{\detokenize{[#1|#2]}}
+\ttfamily\obeylines
+\def\ipout{ipout}
+\faa + shipout; \faa * SHIPOUT; \faa sh\ipout; \faa ;
+\fbb + shipout; \fbb * SHIPOUT; \fbb sh\ipout; \fbb ;
+\end{examcode}
+
+当 \texttt T 类型使用 \texttt\# 前缀且有控制序列作为定界符时，定义 \veta{ekeys-cmd} 时 
+\tn{escapechar} 的值必须和使用这个 \veta{ekeys-cmd} 命令时的值一致。一般情况下总是一致的。
+
+\begin{examcode}{}
+\DeclareEKeysCommand \faa { t{ () [] *{} } } {\detokenize{{#1|#2}}}
+\DeclareEKeysCommand \fbb { @& T{ () [] *{} }{NaN} } {\detokenize{{#1|#2}}}
+\DeclareEKeysCommand \fcc { @& t{ [] \a\b *{ } } } {\detokenize{{#1|#2}}}
+\ttfamily\obeylines
+\faa [{bracket[b]}]; \faa * m; \faa *{at}; \faa ;
+\fbb [bracket[b]];   \fbb * m; \fbb *{at}; \fbb ;
+\fcc [bracket[b]];   \fcc \a a\a r\b\b \fcc *aa*a b ; \fcc ;
+\end{examcode}
+
+\section{可以以任意顺序给出定界符的参数类型——\texttt W}
+
+本节介绍的参数类型和 \texttt D、\texttt T 类似，但不同的是它们可以以任意顺序匹配多个定界符对：
+\texttt e、\texttt E、\texttt w、\texttt W。
+
+\texttt e 和 \texttt E 的 \meta{spec} 为 \meta{spec name}\marg{tokens}。\texttt E 
+可以为 \meta{tokens} 中的每一个都设置默认值。\texttt E 类型的完整形式为 
+\verb|E| \texttt{\{\meta{token_1}\meta{token_2}...\meta{token_n}\}
+  \{\marg{default_1}...\marg{default_2}...\marg{default_n}\}}。它们占用 $n$ 个参数。
+在获取参数时 \meta{token_i} 可以以任意顺序出现，
+但作为实参时仍然按照 \meta{tokens} 所给的顺序。
+例如 \verb|\foo| 的参数为 \verb|e{_^}|，那么 \verb|\foo _a^b|，\verb|\foo ^b_a| 皆可。
+
+仍然要提及的是，\meta{tokens} 的匹配是严格的，即字符码和类别码都必须相同。
+
+\meta{token_i} 和 \meta{token_j}（$i\ne j$）可以相同，匹配参数时，已经用过的 \meta{token}
+不会由于后面的出现了相同 \meta{token} 而更新其实参。
+
+\texttt w 和 \texttt W 的 \meta{spec} 为 \meta{spec name}\marg{paired tokens}。\texttt W
+可以为 \meta{paired tokens} 中的每一对都设置默认值。\texttt W 类型的完整形式为
+\verb|W| 
+\texttt{\{\meta{token_{11}}\meta{token_{12}}...\meta{token_{n1}}\meta{token_{n2}}\} 
+  \{\marg{default_1}...\marg{default_2}...\marg{default_n}\}}。它们占用 $n$ 个参数。
+在获取参数时每对定界符可以以任意顺序出现。但作为实参时仍然按照 \meta{paired tokens} 中定界符对
+所给的顺序。相同的定界符对可以重复出现。定界符的左边相同时，右边也必须相同。
+定界符的右边可以为空或空格，但左边不可以。
+
+\texttt e、\texttt E、\texttt w 都是 \texttt W 的特例。它们都支持 
+\texttt\#、\texttt @、\texttt\& 修饰符，且使用 \texttt\& 时会自动使用 \texttt\#。
+当使用 \texttt\# 前缀且有控制序列作为定界符时，定义 \veta{ekeys-cmd} 时 
+\tn{escapechar} 的值必须和使用这个 \veta{ekeys-cmd} 命令时的值一致。一般情况下总是一致的。
+
+\begin{examcode}{}
+\catcode`\^=7 \catcode`\_=8 
+\DeclareEKeysCommand \faa { e{_^_} } {\detokenize{[#1|#2|#3]}}
+\DeclareEKeysCommand \fbb { &e{_^_} } {\detokenize{[#1|#2|#3]}}
+\DeclareEKeysCommand \fcc { @w{ [] () [] } } {\detokenize{{#1|#2|#3}}}
+\DeclareEKeysCommand \fdd { @&w{ [] *{ } [] } } {\detokenize{{#1|#2|#3}}}
+\DeclareEKeysCommand \fee { @&w{ [] *{ } \a\b } } {\detokenize{{#1|#2|#3}}}
+\ttfamily\small\obeylines
+\faa _a _{abc} ^e; \faa ^{eee} _a; \faa ;
+\fbb _a _{abc} ^e; \fbb ^{eee} _a; \fbb ;
+\fcc (paren(p)) [bracket[b]] [B[B]]; \fcc [bracket[b]]; \fcc ;
+\fdd *hhh*h j [bracket[b]] [{bracket[}]; \fdd *jj ;
+\fee \a zmg\a ?\b\b [[?]];
+\end{examcode}
+
+上述几节提到的参数说明符的用法都比较简单，读者能很快掌握。
+而接下来的几个小节会介绍更加“高级”同时也更为复杂的参数类型：
+\texttt c、\texttt C、\texttt K 以及预处理指示符 \texttt ?。
+
+\section{将参数保存到寄存器的类型——\texttt c 和 \texttt C}
+
+从本小节开始就有一定的难度了，读者需要有 \TeX 和 \LaTeXiii 宏编程的基础知识。
+
+\texttt c 的用法为 \verb|c|\marg{collect spec}。
+
+\texttt C 的用法为 \verb|C|\marg{allocated collect spec}，\meta{allocated collect spec}
+为 \meta{register}\meta{collect spec}。\meta{register} 是一个已经用诸如
+\tn{newcount}、\cs{int_new:N} 等分配了的寄存器。
+
+\meta{collect spec} 有 8 类用法：
+\begin{itemize}
+  \item[\texttt i] 为 \texttt{count}（\texttt{int}）寄存器赋值；
+  \item[\texttt d] 为 \texttt{dimen}（\texttt{dim}）寄存器赋值；
+  \item[\texttt s] 为 \texttt{skip} 寄存器赋值；
+  \item[\texttt m] 为 \texttt{muskip} 寄存器赋值；
+  \item[\texttt t] 为 \texttt{toks} 寄存器赋值；
+\end{itemize}
+以上 5 种，其实参为所分配的寄存器，而不是它们所保存的值。
+实参作为 \tn{the} 的参数，或作为 \LaTeXiii 的 \texttt V 变体的参数都能获得它们保存的值。
+\footnote{这五类寄存器，都有相应的 \cs[no-index]{\meta{type}def} 原语。因此在 \meta{allocated collect spec} 中可根据 \meta{register} 自动判断保存的类型。对于这 5 种寄存器，\texttt C 参数类型只需给出 \meta{register} 即可。如 \texttt C\tn{@tempdima} 或 \texttt C\cs{l_tmpa_dim}。}
+\begin{itemize}
+  \item[\texttt b] \texttt b\meta{spec}，保存到水平盒子中。\meta{spec} 可以为：
+  \begin{itemize}
+    \item \texttt{*}，表示在获取参数时可以动态调整水平盒子的宽度；
+    \item \oarg{width}\oarg{pos}，方括号定界的为可选参数，正如 \tn{makebox} 的前两个可选参数，分别设置盒子的宽度和水平对齐方式。
+  \end{itemize}
+  \item[\texttt w] \texttt w\meta{spec}，为一个固定宽度的盒子赋值，类似于把盒子放在 \env{minipage} 里。\meta{spec} 可以为：
+  \begin{itemize}
+    \item \marg{width}，盒子的宽度。盒子是一个垂直盒子，可以用 \tn{vsplit} 或 \cs{vbox_set_split_to_ht:NNn} 分割；
+    \item \oarg{vpos}\oarg{height}\oarg{inner pos}\marg{width}，方括号定界的为可选参数，正如 \env{minipage} 的参数。盒子是一个水平盒子。若没有可选参数，则和上一个用法一样。
+  \end{itemize}
+  \item[\texttt v] \texttt v\meta{spec}，为一个设置了最长宽度的盒子赋值，类似于把盒子放在 \env{varwidth} 里。\meta{spec} 的用法和作用与 \texttt w 一样。
+\end{itemize}
+以上这些用法的参数（可选、必须参数）之间不能有任何空格。
+且需注意 \meta{spec} 自身是不能有 \verb|{}| 的，花括号的添加与否由具体用法决定。
+它们的实参为所分配的盒子。可作为 \tn{box}，\cs{box_use:N} 等命令的参数。
+\footnote{对于盒子来说，并没有 \tn{boxdef} 原语，分配新的盒子寄存器是用的 \tn{chardef} 或 \tn{mathchardef}。因此，在 \meta{allocated collect spec} 是根据 \meta{register} 是否为 \tn{chardef} 或 \tn{mathchardef} token 来判断是否是保存到盒子的。}
+
+\begin{examcode}{}
+\DeclareEKeysCommand \faa { c{d} ci } {Length: \the#1; Number: \the#2;}
+\newdimen\fbbtempdim \newcount\fbbtempint
+\DeclareEKeysCommand \fbb { C{\fbbtempdim} C\fbbtempint }
+  {Length: \the#1; Number: \the#2;}
+\ttfamily\obeylines
+\faa 12pt 19 |\faa\dimexpr 12pt+8pt-10pt\relax \inteval{19+3-12} |
+\fbb 12pt 19 |\fbb\dimexpr 12pt+8pt-10pt\relax \inteval{19+3-12} |
+\end{examcode}
+
+\begin{examcode}{}
+\DeclareEKeysCommand \faa { cb c{b*} } {\fbox{\box#1} \fbox{\box#2}}
+\newbox\fbbtempboxa \newbox\fbbtempboxb
+\DeclareEKeysCommand\fbb{C\fbbtempboxa C{\fbbtempboxb b*}}{\fbox{\box#1} \fbox{\box#2}}
+\faa {好的} to 3cm{好\hfil 的}\quad \fbb {好的} to 3cm{好\hfil 的}
+\end{examcode}
+
+\begin{examcode}{}
+\DeclareEKeysCommand \faa { c{w{3em}} c{v{3em}} } {\fbox{\box#1} \fbox{\box#2}}
+\DeclareEKeysCommand \fbb { c{w[c]{3em}} c{v[c]{3em}} } {\fbox{\box#1} \fbox{\box#2}}
+\DeclareEKeysCommand \fcc { c{w[c][9ex]{3em}} c{v[c][9ex]{3em}} } 
+  {\fbox{\box#1} \fbox{\box#2}}
+\DeclareEKeysCommand \fdd { c{w[c][9ex][t]{3em}} c{v[c][9ex][t]{3em}} } 
+  {\fbox{\box#1} \fbox{\box#2}}
+基准。
+\faa {好的\par 吗？} {不好\par 吗？}
+\fbb {好的\par 吗？} {不好\par 吗？}
+\fcc {好的\par 吗？} {不好\par 吗？}
+\fdd {好的\par 吗？} {不好\par 吗？}
+\end{examcode}
+
+\section{可自定义参数获取方式的类型——\texttt K}
+
+如果上面的小节介绍的参数获取方式还不能满足你的需要，\veta{ekeys-cmd} 还支持自定义参数获取方式
+——就是使用 \texttt K 类型的参数。\texttt K 的用法为 \verb|K|\marg{scanner-and-args}，其中
+\meta{scanner-and-args} 为
+\begin{itemize}
+  \item \marg{scanner}\meta{args}，\meta{scanner} 带有括号，则它的参数可以不带有括号；
+  \item \meta{scanner}\marg{arg_1}\meta{extra args}，带有一个或多个参数，若 \meta{scanner} 不带括号，则第一个参数必须有括号；
+  \item \meta{scanner}，不带任何参数的扫描器（“扫描器”就是自定义的参数获取方式）；
+\end{itemize}
+以纯文字描述就是：移除 \meta{scanner-and-args} 的首尾空格后，
+若它以一对 \verb|{ }| 开始，则这个花括号里的内容
+就是 scanner，之后的内容移除掉两端的空格后就是额外的参数；
+否则，就是 scanner 就是第一个花括号之前的内容（移除掉两端的空格），
+额外的参数就是第一个花括号及其之后的记号；否则，没有任何花括号，就只有 scanner，没有参数。
+如若 \meta{scanner-and-args} 为 \verb*| {a b } [v] j |，则 scanner 为 \verb*|a b |，
+参数为 \verb*|[v] j|；
+若 \meta{scanner-and-args} 为 \verb*| fo o {da} [b ] |，则 scanner 为 
+\verb*|fo o|，参数为 \verb*|{da} [b ]|。
+
+有几个预定义的扫描器：
+\begin{itemize}
+  \item \texttt ?\meta{preprocessor spec}，参数预处理器。\meta{preprocessor spec} 用法为：
+  \begin{itemize}
+    \item \marg{ekeys-cmd arg spec}，使用 \meta{ekeys-cmd arg spec} 获取后面的参数，转化为带花括号的标准参数；
+    \item \marg{ekeys-cmd arg spec}\marg{scanner code}，使用 \meta{ekeys-cmd arg spec} 获取后面的参数，并用 \meta{scanner code} 替换这些参数。\meta{scanner code} 必须包含 \cs{ekeys_cmd_scanner_end:}，且在它后面的内容会被 \veta{ekeys-cmd} 重新读取；
+    \item \marg{ekeys-cmd arg spec}\marg{scanner code}\meta{text}，同上，\meta{text} 会放在要读取的参数之前。
+  \end{itemize}
+  \item \texttt u\marg{alias}，使用由 \cs{ekeysnewscanneralias} 设置的别名。
+  \item \texttt{define}\meta{define spec}，它用来在定义 \veta{ekeys-cmd} 时，进一步的自定义参数获取方式。\meta{define spec} 用法为：
+  \begin{itemize}
+    \item \marg{definition}，它不占用任何参数。主要用作向后检查，或展开，也可以向输入中添加额外的内容。需要在 \meta{definition} 的合适位置添加 \cs{ekeys_cmd_add_args:n} 和 \cs{ekeys_cmd_scanner_end:}；
+    \item \marg{numbers}\marg{parameters}，它占用 \meta{numbers} 个参数。根据 \meta{parameters} 向后获取参数。\meta{parameters} 的参数数量不能少于 \meta{numbers}。这是 \tn{def} 的 \veta{ekeys-cmd} 接口；
+    \item \marg{numbers}\marg{parameters}\marg{definition}，同上。注意：当 $\veta{numbers}\geq 0$ 时，会在 \meta{definition} 后面自动加上 \cs{ekeys_cmd_add_args:n} 和 \cs{ekeys_cmd_scanner_end:}；
+    \item \texttt{\{*\meta{numbers}\}}\marg{parameters}\marg{definition}，\meta{numbers} 与 \meta{parameters} 没有关系。但需要在 \meta{definition} 的合适位置添加 \cs{ekeys_cmd_add_args:n} 和 \cs{ekeys_cmd_scanner_end:}，且添加的参数必须和 \meta{numbers} 一致。
+  \end{itemize}
+  \item \texttt{lohi}\meta{defaults}，它获取一组数学上下标，占用 2 个参数，第一个为下标，第二个为上标。如果不存在，则为使用默认值。设置默认值是通过给扫描器的额外的参数来设置。其中 \meta{defaults} 为：
+  \begin{itemize}
+    \item \marg{default_{lo}}\marg{default_{hi}}，设置下标和上标的默认值；
+    \item \marg{default}，设置上下标的默认值；
+    \item 空，表示上下标使用特殊的标记：\UseName{c_novalue_tl}。
+  \end{itemize}
+  它支持 \texttt\& 修饰符，即可以自动添加 \verb|_| 和 \verb|^|，但默认值不会自动添加这两个符号。
+\end{itemize}
+
+本节的这些都归类为 \veta{ekeys-cmd} 的参数扫描器，预处理器也是一类特殊的参数扫描器。
+参数扫描器是完全可自定义的，所有自定义的参数处理器都需要执行 \cs{ekeys_cmd_scanner_end:} 或
+与之等价的 \cs[break-at-any]{EKeysEndPreprocessor}，例如在 \meta{preprocessor spec} 或 
+\meta{definition} 中。
+
+接下来的两个小节会详细介绍参数扫描器。
+
+\section{自定义参数扫描方式}
+
+先来介绍 \texttt{lohi} 这个预定义的 scanner。
+它用来获取一组数学上下标。在找寻上下标时，会自动展开和移除空格和 \tn{relax}
+（即自动移除 \BNFN{filler}），它并不需要用于数学模式，但是严格匹配的，只会匹配类别码为 7 或 8
+的字符（显式或隐式的）。可以为它设置默认值。
+
+\begin{examcode}{}
+\catcode`\^=7 \catcode`\_=8
+\def\temp{\relax _ \space\relax{ij}}
+\DeclareEKeysCommand \faa { K{lohi} } {\detokenize{[#1|#2]}}
+\DeclareEKeysCommand \fbb { K{lohi{n}} } {\detokenize{[#1|#2]}}
+\DeclareEKeysCommand \fcc { K{lohi{m}{n}} } {\detokenize{[#1|#2]}}
+\DeclareEKeysCommand \fmm { &p{\limits\nolimits} &K{lohi{_m}{^n}} } {\sum#1#2#3}
+\obeylines
+\faa ; \faa _a^b; \faa _a; \faa ^b; \faa\temp;
+\fbb ; \fbb _a^b; \faa _a; \fbb ^b; \fbb\temp;
+\fcc ; \fcc _a^b; \fcc _a; \fcc ^b; \fcc\temp;
+$ \fmm ; \fmm _a^b; \fmm _a; \fmm ^b; \fmm\temp; \fmm\limits\temp $
+\end{examcode}
+
+\cs{ekeysnewscanneralias} 可以为扫描器全局地设置别名，在 \texttt u 中使用。
+不带中间的可选参数时，可以为 scanner 设置别名；
+带中间的可选参数时，可以为任意参数类型设置别名，但需写出这个类型。
+\begin{examcode}{}
+\catcode`\^=7 \catcode`\_=8
+\ekeysnewscanneralias{lohi-xy}{lohi{x}{y}} % scanner
+\ekeysnewscanneralias{lohi-K-xy}[K]{ & K{lohi{_x}{^y}} } % 任意说明符/修饰符
+\DeclareEKeysCommand \fcc { K{u{lohi-xy}} } {\detokenize{[#1|#2]}}
+\DeclareEKeysCommand \fmm { K{u{lohi-K-xy}} } {\sum#1#2}
+\fcc ; \fcc _a^b; \fcc _a; \fcc ^b; 
+$ \fmm ; \fmm _a^b; \fmm _a; \fmm ^b; $
+\end{examcode}
+
+\begin{syntax}
+\V*|\ekeys_cmd_new_scanner:nnnpn| \marg{scanner} \marg{argument number} \marg{initial action} \meta{parameter list} \marg{scanner action}
+\V*|\ekeys_cmd_new_scanner:nnpn| \marg{scanner} \marg{argument number} \meta{parameter list} \marg{scanner action}
+\V*|\ekeys_cmd_add_args:n| \{ \marg{arg_1} \marg{arg_2} ... \marg{arg_n} \}
+\V*|\ekeys_cmd_add_arg:n| \marg{arg}
+\V*|\ekeys_cmd_scanner_end:|
+\end{syntax}
+\cs{ekeys_cmd_new_scanner:nnnpn} 用于定义一个参数扫描器。
+\meta{scanner action} 中必须执行 \cs[break-at-any]{ekeys_cmd_scanner_end:}，
+在它后面的内容会被此扫描器之后的参数（或扫描器）读取。在 \meta{scanner action} 中用
+\cs{ekeys_cmd_add_args:n} 和 \cs{ekeys_cmd_add_arg:n} 来给 \veta{ekeys-cmd} 添加参数。
+还可在 \meta{initial action} 中设置 \cs{l_ekeys_cmd_scanner_args_int} 来修改 
+\meta{parameter number}。添加的参数数目必须和该整数值一致。
+
+\begin{examcode}{}
+\ExplSyntaxOn
+\ekeys_cmd_new_scanner:nnpn { my/scan-bra-ket } { 2 } <#1|#2>
+  {
+    \ekeys_cmd_add_args:n { {#1} {#2} }
+    \ekeys_cmd_scanner_end: 
+  }
+\ExplSyntaxOff
+\DeclareEKeysCommand \foo { K{my/scan-bra-ket} } {\left<#1\middle|#2\right>}
+$ \foo<a|b> $\quad $ \foo<\sum|\prod> $
+\end{examcode}
+
+针对上面这种特别简单的情况，可以直接使用 \texttt{define} scanner：
+\begin{examcode}[listing only]{}
+\ExplSyntaxOn
+\DeclareEKeysCommand \foo { K{ define {2} {<#1|#2>} { } } } {\left<#1\middle|#2\right>}
+\ExplSyntaxOff
+$ \foo<a|b> $\quad $ \foo<\sum|\prod> $
+\end{examcode}
+甚至，由于 \meta{definition} 为空，还可以直接不写：
+\begin{examcode}[listing only]{}
+\ExplSyntaxOn
+\DeclareEKeysCommand \foo { K{ define {2} {<#1|#2>} } } {\left<#1\middle|#2\right>}
+\ExplSyntaxOff
+$ \foo<a|b> $\quad $ \foo<\sum|\prod> $
+\end{examcode}
+这是由于，对于上面这两种情况，会在 \meta{definition} 后面自动附加合适的 
+\cs{ekeys_cmd_add_args:n} 和 \cs[break-at-any]{ekeys_cmd_scanner_end:}。
+如果某些情况下，不需要自动添加的 \cs{ekeys_cmd_add_args:n} 和 \cs{ekeys_cmd_scanner_end:}
+该怎么办呢？答案是在参数数字前面加上 \texttt{*}：
+\begin{examcode}[listing only]{}
+\ExplSyntaxOn
+\DeclareEKeysCommand \foo { 
+  K{ define {*2} {<#1|#2>} { \ekeys_cmd_add_args:n {{#1}{#2}}\ekeys_cmd_scanner_end: } } 
+} {\left<#1\middle|#2\right>}
+\ExplSyntaxOff
+$ \foo<a|b> $\quad $ \foo<\sum|\prod> $
+\end{examcode}
+
+当参数数目设置为 $-1$ 时，也不会自动添加 \cs{ekeys_cmd_add_args:n} 和 
+\cs{ekeys_cmd_scanner_end:}。
+
+以上是一些简单的情形，实际上参数扫描器还可以定义得更加复杂。更多的例子
+见\cref{sec:vario-examples}。
+
+参数扫描器除了可以添加参数，还可以用作检查后面的内容并进行必要的处理。针对这一类特殊的扫描器，
+称之为参数预处理器，这是下一节要介绍的。
+
+\section{参数预处理器}
+
+\veta{document-cmd} 有“参数处理器”，而 \veta{ekeys-cmd} 有“参数\emph{预}处理器”。
+“处理器”和“预处理器”的区别是，前者先按参数说明符的规则获取参数后再对其进行处理，
+把结果作为实参；
+而后者是对未读取的内容先一步进行处理，然后再根据参数说明符的规则获取参数作为实参。
+
+假设我们想查看后面的那个记号是不是 \tn{relax}，借助 
+\cs{peek_meaning_remove:NTF} 可以这么做：
+\begin{examcode}{}
+\ExplSyntaxOn
+\DeclareEKeysCommand \foo { 
+  K{ define { 
+      \peek_meaning_remove:NTF \scan_stop: 
+        { \ekeys_cmd_scanner_end: { is-relax } } 
+        { \ekeys_cmd_scanner_end: { is-not-relax } }
+    } 
+  } m u;
+} { #1. \tl_to_str:n {#2}. }
+\ExplSyntaxOff \ttfamily
+\foo \relax; \foo a; \foo {\relax};
+\end{examcode}
+可以看到，在获取第一个参数之前，我们根据后面是不是跟着 \tn{relax} 来让它获得不同的值。
+
+这是预处理器不需要获取参数的情况，倘若需要获取参数，仍然可以用 \texttt{define} scanner：
+\begin{examcode}{}
+\ExplSyntaxOn
+\DeclareEKeysCommand \foo {
+  K{ define {-1} { #1#2 } { 
+      \tl_if_eq:nnTF {#1} {#2}
+        { \ekeys_cmd_scanner_end: \BooleanTrue }
+        { \ekeys_cmd_scanner_end: \BooleanFalse }
+    } 
+  } m 
+} { \IfBooleanTF {#1} { eq } { neq } }
+\ExplSyntaxOff
+\foo {a}{b}; \foo {a}{a};
+\end{examcode}
+\verb|define{*0}{#1#2}...| 也是可行的。也可直接使用 \cs{ekeys_cmd_new_scanner:nnnpn}。
+
+使用上面这种方式定义的预处理器通常比较简短，获取参数的方式也比较有限，若要获取更加复杂参数，
+则可以使用 \texttt? scanner 和 \texttt? 预处理器指示符。
+它们的区别是，预处理器指示符和参数类型的地位等同，而 \texttt? 参数扫描器则是和 \texttt{define}
+扫描器等同，且它们的具体用法也不一致。
+
+\texttt? 预处理器指示符的用法 \texttt?\marg{preprocessor action}。
+\meta{preprocessor action} 通常是一个命令，它的定义中有一个 \cs{ekeys_cmd_scanner_end:}。
+\begin{examcode}{}
+\ExplSyntaxOn
+% 它用来合并 () 和 [] 的键值选项
+\DeclareEKeysCommand \foopreprocessor { m @w{ () [] } }
+  {
+    \tl_if_novalue:nTF {#2}
+      { 
+        \tl_if_novalue:nTF {#3} 
+          { \ekeys_cmd_scanner_end: { } } 
+          { \ekeys_cmd_scanner_end: {#3} }
+      }
+      { 
+        \tl_if_novalue:nTF {#3} 
+          { \ekeys_cmd_scanner_end: {#2} } 
+          { \ekeys_cmd_scanner_end: { #2 #1 #3 } }
+      }
+  }
+\ExplSyntaxOff
+\DeclareEKeysCommand \foo { ?{\foopreprocessor{,}} m } {\detokenize{#1}}
+\foo [a=b,b=k] (c=d,e=f); \foo ;
+\end{examcode}
+对于上面预处理器命令中的 \cs{ekeys_cmd_scanner_end:} 可以替换为 
+\cs{EKeysEndPreprocessor}，它们的区别是，前者必须用在参数扫描器的定义中，
+而后者若没有用在参数扫描器中，不会报错且 \texttt f-展开为空。
+
+上例可以转换为 \texttt? scanner：
+\begin{examcode}{}
+\def\mergenovalue#1#2#3{%
+  \IfNoValueTF{#2}{\IfNoValueTF{#3}{#1{}}{#1{#3}}}
+    {\IfNoValueTF{#3}{#1{#2}}{#1{#2,#3}}}}
+\DeclareEKeysCommand \foo {
+  K{ ?{ @w{ () [] } }{\mergenovalue\EKeysEndPreprocessor{#1}{#2}} } m 
+} {\detokenize{#1}}
+\foo [a=b,b=k] (c=d,e=f); \foo ;
+\end{examcode}
+
+若 \texttt? scanner 没有给出 \meta{preprocessor spec} 没有给出 \meta{scanner code}，则
+会按照给定的参数说明符获取参数，并将其转化为带花括号的标准参数。
+\begin{examcode}{}
+\DeclareEKeysCommand \foo { K{?{ @w{[] ()} }} m m }{\detokenize{{#1}{#2}}}
+\foo (brace(b)) [bracket[B]]; \foo ;
+\end{examcode}
+
+当然，参数扫描器和预处理器能做的还远不止于此，例如，使用使用 \LaTeXiii 的正则表达式库，
+可以对参数进行更加细致的处理，使用 \cs{peek_regex:NTF}、\cs{peek_regex_replace_once:NnTF}
+等可以对参数进行更加细致的检测。
+
+下一小节是一些例子。它们使用了 \pkg{collectn} 宏包，它的用法可以参考文末附上的用法说明。
+
+\section{\veta{ekeys-cmd} 诸例}\label{sec:vario-examples}
+
+尽管 \texttt c 和 \texttt C 不能引用其它参数，但可以间接做到这一点。
+并且，由于 \texttt K 和预处理器可以嵌套使用，在处理参数时是非常灵活的。
+\begin{examcode}{}
+\ekeysdeclarecmd \faa { 
+  K{ ? {G{{3cm}}} {\def\footmpa{#1}\EKeysEndPreprocessor} }
+  c{ w\footmpa } 
+} {\fbox{\box#1}}
+\faa \relax {你好\\ 吗？ } ! % 这个 \relax 用来阻止 G 参数
+%
+\ekeysdeclarecmd \fbb {
+  K{ ?{ 
+        K{ ?{O{t} O{9ex} G{2cm}}{\EKeysEndPreprocessor{[#1][#2]{#3}}} } G{{3cm}} 
+      }{\def\footmpa{#1}\EKeysEndPreprocessor} 
+  }
+  c { w\footmpa }
+}{\fbox{\box#1}}
+\fbb [c]\relax {你好\\ 吗？}!
+% 这个 \relax 用来阻止内层的 G 参数，而外层的 G 参数已经由内层的预处理器给出了
+\end{examcode}
+
+嵌套使用 \texttt{K} 参数时，需要注意使用的 \cs{ekeys_cmd_scanner_end:} 次数要和需要的一致。
+
+使用 \texttt K 类型的参数可以做到和 \tn{def} 定义宏一样的效果。
+\begin{examcode}{}
+\ekeysnewscanneralias{math-style}[p]
+  {p{\displaystyle\textstyle\scriptstyle\scriptscriptstyle}}
+\ekeysnewscanneralias{scan-bra-ket}{define{2}{<#1|#2>}}
+
+\DeclareEKeysCommand \foo { &K{u{math-style}} K{u{scan-bra-ket}} }
+  {{#1\left<#2\middle|#3\right>}}
+$ \foo<a|b> $\quad $ \foo\displaystyle<\sum|\prod> $.
+\end{examcode}
+
+等价的方法是：
+\begin{examcode}[listing only]{}
+\ExplSyntaxOn
+\ekeys_cmd_new_scanner:nnpn { my/scan-bra-ket } { 2 } <#1|#2>
+  {
+    \ekeys_cmd_add_args:n { {#1} {#2} }
+    \ekeys_cmd_scanner_end: 
+  }
+\ExplSyntaxOff
+\DeclareEKeysCommand \foo 
+  { &p{\displaystyle\textstyle\scriptstyle\scriptscriptstyle} K{my/scan-bra-ket} } 
+  {{#1\left<#2\middle|#3\right>}}
+$ \foo<a|b> $\quad $ \foo\displaystyle<\sum|\prod> $.
+\end{examcode}
+
+有一类原语，它们可以通过关键字的出现与否来实现不同的行为，如 \tn{special}：
+\begin{latexbnf}
+\BNFItem* "\V\special" ["shipout"] <general text>
+<general text> ::= <filler>"\V{\{}"<balanced text><right brace>
+<filler> ::= <optional spaces> | <filler>"\V\relax"<filler>
+<optional spaces> ::= <empty> | <space token><optional spaces>
+\end{latexbnf}
+其中，这 \BNFT{shipout} 是忽略大小写和类别码的，
+而且在检测关键字是否出现时会自动展开后面的记号。\penalty-1000
+\cs{collectn_scan_keyword:NTF} 为我们提供了此功能。
+
+\begin{examcode}{}
+\ExplSyntaxOn
+\newtoks \l__my_scan_nos_toks
+\collectn_set_keyword:Nn \c__my_scan_nos_tl { shipout }
+\ekeys_cmd_new_scanner:nnpn { my/scan-nos } { 2 }
+  {
+    \collectn_scan_keyword:NTF \c__my_scan_nos_tl 
+      {
+        \ekeys_cmd_add_arg:n { \BooleanTrue }
+        \__my_scan_nos_next: 
+      }
+      { 
+        \ekeys_cmd_add_arg:n { \BooleanFalse }
+        \__my_scan_nos_next: 
+      }
+    % 不可将 \__my_scan_nos_next: 放到这里，
+    % 否则，\collectn_scan_keyword:NTF 将会扫描到 \__my_scan_nos_next: 
+  }
+\cs_new:Npn \__my_scan_nos_next: 
+  {
+    \collectn_value:Nnw \l__my_scan_nos_toks
+      {
+        \ekeys_cmd_add_arg:V \l__my_scan_nos_toks 
+        \ekeys_cmd_scanner_end: % <- 扫描器完成时必须使用它
+      } = % 加上一个等号，这样后面就不能再出现等号了
+  }
+\ExplSyntaxOff
+
+\DeclareEKeysCommand \foo { K{my/scan-nos} }
+  {Is\IfBooleanF{#1}{ not} shipout, text: [#2]}
+\foo {special code} \quad 
+\foo ShipouT {special code} \quad 
+\foo shipout\relax\bgroup special code}
+\end{examcode}
+
+不过，当字符的类别码为 1、2、10 之一时，即使它的字符码匹配，\cs{collectn_scan_keyword:NTF} 
+系列命令也无法判定它为匹配的关键字，但 \TeX 原语却能识别和匹配。
+同时，类别码为 13 的字符无法构成关键字。
+
+倘若我们想要模拟 \tn{vrule} 和 \tn{hrule} 这样的命令，它们的语法规则是这样的：
+\begin{latexbnf}
+<vertical rule> ::= "\V\vrule"<rule specification>
+<horizontal rule> ::= "\V\hrule"<rule specification>
+<rule specification> ::= <optional spaces> | <rule dimension><rule specification>
+<rule dimension> ::= "width"<dimen> | "height"<dimen> | "depth"<dimen>
+\end{latexbnf}
+像 \BNFT{width} 这个关键词，它是忽略大小写和类别码的。
+而且 \BNFN{rule dimension} 需要匹配多个无序的关键词。
+\cs{collectn_scan_keywords:NTF} 正好为我们提供了对应功能。
+至于 \BNFN{dimen} 只需使用 \cs{collectn_value:Nnw} 即可获取。
+
+下例定义了一个参数扫描器 \texttt{my/scan-whd}，用于捕获以关键字 
+\texttt{width}、\texttt{height}、\texttt{depth} 引导的长度。
+
+\begin{examcode}{}
+\ExplSyntaxOn
+\dim_new:N \l__my_scan_whd_dim % 临时保存长度
+\seq_new:N \l__my_scan_whd_seq % 保存三个值，width,height,depth
+\cs_generate_variant:Nn \seq_set_item:Nnn { NnV }
+\collectn_set_keywords:Nn \c__my_scan_whd_tl { width, height, depth }
+% 3 个参数，为 width, height, depth
+\ekeys_cmd_new_scanner:nnpn { my/scan-whd } { 3 }
+  {
+    % initial seq
+    \seq_clear:N \l__my_seq_whd_seq
+    \seq_put_right:NV \l__my_seq_whd_seq \c_novalue_tl
+    \seq_put_right:NV \l__my_seq_whd_seq \c_novalue_tl
+    \seq_put_right:NV \l__my_seq_whd_seq \c_novalue_tl
+    \__my_scan_whd_next: 
+  }
+\cs_new:Npn \__my_scan_whd_next: 
+  {
+    \collectn_scan_keywords:NTF \c__my_scan_whd_tl 
+      {
+        \collectn_value:Nnw \l__my_scan_whd_dim 
+          {
+            \seq_set_item:NnV \l__my_seq_whd_seq 
+              { \l_collectn_keywords_int } \l__my_scan_whd_dim 
+            \__my_scan_whd_next: 
+          } = % 加上一个等号，这样后面就不能再出现等号了
+      }
+      { 
+        \ekeys_cmd_add_args:e
+          { \seq_map_function:NN \l__my_seq_whd_seq \ekeys_exp_not_braced:n }
+        \ekeys_cmd_scanner_end: 
+      }
+  }
+\ExplSyntaxOff
+
+\DeclareEKeysCommand \foo { K{my/scan-whd} } 
+  {[ W: \IfValueTF{#1}{#1}{-}; H: \IfValueTF{#2}{#2}{-}; D: \IfValueTF{#3}{#3}{-} ]}
+\ttfamily
+\foo height 3pt depth \dimeval{3pt+2pt-10pt} height \dimexpr 3pt-2pt wide
+\end{examcode}
+
+\begin{table}[h]
+\caption{\pdfTeX、\XeTeX、\LuaTeX 可用的类别码及其含义}\label{tab:catcode}
+\let\V\Verbatimize
+\def\TH#1{\multicolumn{1}{c}{\normalfont\bfseries #1}}
+\def\N#1 {\hbox to 1em{\hfil#1}}
+\startfullpagewidth \noindent\centering
+\begin{tabular}{cll>{\ttfamily}l}
+\toprule
+\TH{类别} & \TH{含义} & \TH{Meaning} & \TH{常见值} \\ \midrule
+\N0 & 转义字符 & Escape character & \V\\ \\
+\N1 & 组开始 & Beginning of group & \V\{ \\
+\N2 & 组结束 & End of group & \V\} \\
+\N3 & 数学切换 & Math shift & \V\$ \\
+\N4 & 表对齐 & Alignment tab & \V\& \\
+\N5 & 行结束 & End of line & \BNFN{return} \\
+\N6 & 变量 & Parameter & \V\# \\
+\N7 & 上标 & Superscript & \V\^
+\\ \bottomrule
+\end{tabular}\,%
+\begin{tabular}{cll>{\ttfamily}l}
+\toprule
+\TH{类别} & \TH{含义} & \TH{Meaning} & \TH{常见值} \\ \midrule
+\N8 & 下标 & Subscript & \V\_ \\
+\N9 & 忽略的字符 & Ignored character & \BNFN{null} \\
+\N10 & 空格 & Space & \textvisiblespace \\
+\N11 & 字母 & Letter & 26 个英文字母 \\
+\N12 & 其它字符 & Other character & 其它 \\
+\N13 & 活动字符 & Active character & \V~ \\
+\N14 & 注释字符 & Comment character & \V\% \\
+\N15 & 无效字符 & Invalid character & \BNFN{delete}
+\\ \bottomrule
+\end{tabular}\par 
+\stopfullpagewidth
+\footnotesize\fangsong 注：
+在 \XeLaTeX 和 \LuaLaTeX 下，使用 \pkg{xeCJK} 或 \pkg{luatexja}
+宏包，中日韩字符的类别码也是 11。
+\end{table}
+
+\IfGraphicsExists{cus-cn.pdf}{\section[=,float-barrier]{用法说明}\clearpage
+  \usepagestyle{totalempty}
+  \IterateInteger[81][1]{96}{\newpage\null\foregroundpicture[page=#1]{cus-cn.pdf}}}{}
+
+\end{document}
