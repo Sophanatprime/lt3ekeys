@@ -1,0 +1,1104 @@
+% lt3ekeyscmd.sty 
+% Copyright 2023, 2024 Wenjian Chern.
+%
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3c
+% of this license or any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3c or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+%
+% This work has the LPPL maintenance status `maintained'.
+% 
+% The Current Maintainer of this work is Wenjian Chern.
+%
+% This work consists of the files lt3ekeys.sty, lt3ekeyscmd.sty,
+% lt3ekeysext.sty, lt3ekeys-elkernel.sty, lt3ekeys-collectn.sty,
+% lt3ekeys.tex and lt3ekeys-usrguide-cn.tex.
+%
+\ProvidesExplPackage{lt3ekeys-collectn}{2024/03/18}{0.2}{collect value and box}
+\RequirePackage{varwidth}
+\RequirePackage{lt3ekeys-elkernel}
+\box_new:N \l__collectn_box
+\box_new:N \l__collectn_tmp_box
+\quark_new:N \q__collectn_stop
+\quark_new:N \q__collectn_mark
+\quark_new:N \q__collectn_nil
+\cs_new:Npn \__collectn_use_none_delimit_by_q_stop:nw #1 #2 \q__collectn_stop {#1}
+
+\cs_new:Npn \__collectn_use_none:pn #1# { \use_none:n }
+\cs_new:Npn \__collectn_token_if_char:NTF #1 % #1 might be charcode=32
+  { \exp_args:No \tl_if_single_token:nTF { \token_to_str:N #1 } }
+\cs_new:Npn \__collectn_token_if_cs_p:N #1
+  { 
+    \exp_args:No \tl_if_single_token:nTF { \token_to_str:N #1 } 
+      { \c_false_bool } { \c_true_bool }
+  }
+
+% #1=box num, #2=primitive box cs, #3=process code
+\cs_new_protected:Npn \collectn_box:NNnw #1#2#3
+  {
+    \tl_set:Nn \__collectn_box_auxii: { \c_group_end_token #3 }
+    \tex_afterassignment:D \__collectn_box_auxi:
+    \tex_setbox:D #1 #2
+  }
+\cs_new:Npn \__collectn_box_auxi:
+  {
+    \c_group_begin_token
+    \group_insert_after:N \__collectn_box_auxii:
+  }
+\cs_new_protected_nopar:Npn \@collectn@box { \collectn_box:NNnw }
+\cs_new_protected:Npn \collectn_value:Nnw #1#2 % register token, code 
+  {
+    \tl_set:Nn \__collectn_value: {#2}
+    \tex_afterassignment:D \__collectn_value: #1
+  }
+\cs_new_protected_nopar:Npn \@collectn@value { \collectn_value:Nnw }
+
+
+\cs_new_protected_nopar:Npn \collectn_varwidth:nnw #1#2 % pos, max width
+  { \group_begin: \varwidth [#1] { \dim_eval:n {#2} } }
+\cs_new_protected_nopar:Npn \collectn_varwidth_end: { \endvarwidth \group_end: }
+
+\cs_new_protected_nopar:Npn \collectn_set_varwidth:Nnnw #1#2#3
+  { \hbox_set:Nw #1 \varwidth [#2] { \dim_eval:n {#3} } }
+\cs_new_protected_nopar:Npn \collectn_set_varwidth_end: { \endvarwidth \hbox_set_end: }
+\cs_new_protected_nopar:Npn \collectn_gset_varwidth:Nnnw #1#2#3
+  { \hbox_gset:Nw #1 \varwidth [#2] { \dim_eval:n {#3} } }
+\cs_new_protected_nopar:Npn \collectn_gset_varwidth_end: { \endvarwidth \hbox_gset_end: }
+
+\cs_new_protected:Npn \collectn_set_vbox_width:Nnw #1#2 % box num, width
+  {
+    \tex_setbox:D #1 \tex_vbox:D \c_group_begin_token
+    \dim_set:Nn \tex_hsize:D {#2}
+    \color_group_begin:
+    \textwidth\tex_hsize:D \columnwidth\tex_hsize:D
+    \legacy_if:nTF { @in@minipage@env }
+      {
+        \box_if_empty:NF \@mpfootins 
+          { \@latex@warning { Nested~minipage:~footnotes~may~be~misplaced } }
+      }
+      { \legacy_if_set_true:n { @in@minipage@env } }
+    \@parboxrestore 
+    \tl_set:Nn \@mpfn { mpfootnote }
+    \tl_set:Nn \thempfn { \thempfootnote }
+    \int_zero:N \c@mpfootnote 
+    \cs_set_eq:NN \@footnotetext \@mpfootnotetext 
+    \cs_set_eq:NN \@listdepth \@mplistdepth 
+    \int_zero:N \@mplistdepth
+    \@minipagerestore \@setminipage
+  }
+\cs_new_protected:Npn \collectn_gset_vbox_width:Nnw 
+  { \tex_global:D \collectn_set_vbox_width:Nnw }
+\cs_new_protected:Npn \collectn_set_vbox_width_end:
+  {
+    \par \tex_unskip:D 
+    \box_if_empty:NF \@mpfootins 
+      {
+        \tex_vskip:D \tex_skip:D \@mpfootins 
+        \normalcolor \footnoterule 
+        \vbox_unpack_drop:N \@mpfootins 
+      }
+    \legacy_if_set_false:n { @minipage }
+    \par \color_group_end: \c_group_end_token
+  }
+\cs_new_eq:NN \collectn_gset_vbox_width_end: \collectn_set_vbox_width_end:
+\cs_new_protected:Npn \collectn_set_vbox_varwidth:Nnw #1 #2 % box num, width 
+  {
+    \tex_setbox:D #1 \tex_vbox:D \c_group_begin_token
+    \dim_set:Nn \tex_hsize:D {#2}
+    \color_group_begin:
+    \textwidth\tex_hsize:D \columnwidth\tex_hsize:D
+    \legacy_if:nTF { @in@minipage@env }
+      {
+        \box_if_empty:NF \@mpfootins 
+          { \@latex@warning { Nested~minipage:~footnotes~may~be~misplaced } }
+      }
+      { \legacy_if_set_true:n { @in@minipage@env } }
+    \@parboxrestore 
+    \tl_set:Nn \@mpfn { mpfootnote }
+    \tl_set:Nn \thempfn { \thempfootnote }
+    \int_zero:N \c@mpfootnote 
+    \cs_set_eq:NN \@footnotetext \@mpfootnotetext 
+    \cs_set_eq:NN \@listdepth \@mplistdepth 
+    \int_zero:N \@mplistdepth
+    \@vwid@setup \@setminipage
+  }
+\cs_new_protected:Npn \collectn_gset_vbox_varwidth:Nnw
+  { \tex_global:D \collectn_set_vbox_varwidth: }
+\cs_set_eq:NN \__collectn_tmp: \endvarwidth 
+\cs_set:Npn \__collectn_tmp:w #1 \endminipage #2 \q_nil
+  { 
+    \cs_new_protected:Npn \collectn_set_vbox_varwidth_end: 
+      { #1 \collectn_set_vbox_width_end: #2 }
+  }
+\exp_after:wN \__collectn_tmp:w \__collectn_tmp: \q_nil
+\cs_new_eq:NN \collectn_gset_vbox_varwidth_end: \collectn_set_vbox_varwidth_end:
+
+\cs_new_protected:Npn \collectn_width:Nnnw #1#2#3 % box num, code, width,
+  {
+    \tl_set:Nn \__collectn_width_auxiii: { \collectn_set_vbox_width_end: #2 }
+    \tl_set:Nn \__collectn_width_auxii: 
+      { 
+        \c_group_end_token 
+        \collectn_set_vbox_width:Nnw #1 {#3} 
+        \c_group_begin_token \group_insert_after:N \__collectn_width_auxiii:
+      }
+    \tex_afterassignment:D \__collectn_width_auxii:
+    \tex_setbox:D \l__collectn_tmp_box \tex_hbox:D \scan_stop:
+  }
+\cs_new:Npn \collectn_minipage:Nnnw { \collectn_width:Nnnw }
+\cs_new_protected:Npn \collectn_varwidth:Nnnw #1#2#3 % box num, code, width,
+  {
+    \tl_set:Nn \__collectn_varwidth_auxiii: { \collectn_set_vbox_varwidth_end: #2 }
+    \tl_set:Nn \__collectn_varwidth_auxii: 
+      { 
+        \c_group_end_token 
+        \collectn_set_vbox_varwidth:Nnw #1 {#3} 
+        \c_group_begin_token \group_insert_after:N \__collectn_varwidth_auxiii:
+      }
+    \tex_afterassignment:D \__collectn_varwidth_auxii:
+    \tex_setbox:D \l__collectn_tmp_box \tex_hbox:D \scan_stop:
+  }
+
+\cs_new_protected:Npn \__collectn_box_hl:N #1
+  { \hbox_unpack_drop:N #1 \tex_hss:D }
+\cs_new_protected:Npn \__collectn_box_hc:N #1
+  { \tex_hss:D \hbox_unpack_drop:N #1 \tex_hss:D }
+\cs_new_protected:Npn \__collectn_box_hr:N #1
+  { \tex_hss:D \hbox_unpack_drop:N #1 }
+\cs_new_protected:Npn \__collectn_box_hs:N #1 { \hbox_unpack_drop:N #1 }
+\cs_new_eq:NN \__collectn_box_h:N \__collectn_box_hs:N 
+\cs_new_protected:Npn \__collectn_box_vb:N #1
+  { \vbox:n { \vbox_unpack_drop:N #1 } }
+\cs_new_eq:NN \__collectn_box_v:N \__collectn_box_vb:N 
+\cs_new_protected:Npn \__collectn_box_vt:N #1
+  { \vbox_top:n { \vbox_unpack_drop:N #1 } }
+\cs_new_protected:Npn \__collectn_box_vc:N #1
+  { \m@th $ \tex_vcenter:D { \vbox_unpack_drop:N #1 } $ }
+\cs_new_protected:Npn \collectn_width:Nnnnw #1#2#3#4 % box num, code, vpos, width, 
+  {
+    \cs_set:Npx \__collectn_width: 
+      { \collectn_set_vbox_width:Nnw \l__collectn_box \exp_not:n { {#4} } }
+    \cs_set:Npx \__collectn_width_auxii: 
+      { 
+        \collectn_set_vbox_width_end: 
+        \cs_if_exist_use:cF { __collectn_box_v#3:N } { \use:c { __collectn_box_v:N } } 
+          \l__collectn_box 
+        \c_group_end_token 
+        \exp_not:n {#2} 
+      }
+    \tex_afterassignment:D \__collectn_width_auxi:
+    \tex_setbox:D #1 \tex_hbox:D 
+  }
+\cs_new:Npn \__collectn_width_auxi:
+  {
+    \__collectn_width: \c_group_begin_token
+    \group_insert_after:N \__collectn_width_auxii:
+  }
+\cs_new:Npn \collectn_minipage:Nnnnw { \collectn_width:Nnnnw }
+% full version: box num, code, vpos, height, inner pos, width, 
+\cs_new_protected:Npn \collectn_width:Nnnnnnw #1#2#3#4#5#6
+  {
+    \cs_set:Npx \__collectn_width:
+      { \collectn_set_vbox_width:Nnw \l__collectn_box \exp_not:n { {#6} } }
+    \cs_set:Npx \__collectn_width_auxii:
+      {
+        \collectn_set_vbox_width_end: 
+        \exp_not:N \@iiiparbox 
+          {#3} {#4} [#5] { \dim_eval:n {#6} } { \vbox_unpack_drop:N \l__collectn_box }
+        \c_group_end_token
+        \exp_not:n {#2}
+      }
+    \tex_afterassignment:D \__collectn_width_auxi: 
+    \tex_setbox:D #1 \tex_hbox:D 
+  }
+\cs_new:Npn \collectn_minipage:Nnnnnnw { \collectn_width:Nnnnnnw }
+\cs_new_protected:Npn \collectn_varwidth:Nnnnw #1#2#3#4 % box num, code, vpos, width, 
+  {
+    \cs_set:Npx \__collectn_varwidth: 
+      { \collectn_set_vbox_varwidth:Nnw \l__collectn_box \exp_not:n { {#4} } }
+    \cs_set:Npx \__collectn_varwidth_auxii: 
+      { 
+        \collectn_set_vbox_varwidth_end: 
+        \use:c { __collectn_box_v#3:N } \l__collectn_box 
+        \c_group_end_token 
+        \exp_not:n {#2} 
+      }
+    \tex_afterassignment:D \__collectn_varwidth_auxi:
+    \tex_setbox:D #1 \tex_hbox:D 
+  }
+\cs_new:Npn \__collectn_varwidth_auxi:
+  {
+    \__collectn_varwidth: \c_group_begin_token
+    \group_insert_after:N \__collectn_varwidth_auxii:
+  }
+% full version: box num, code, vpos, height, inner pos, width, 
+\cs_new_protected:Npn \collectn_varwidth:Nnnnnnw #1#2#3#4#5#6
+  {
+    \cs_set:Npx \__collectn_varwidth:
+      { \collectn_set_vbox_varwidth:Nnw \l__collectn_box \exp_not:n { {#6} } }
+    \cs_set:Npx \__collectn_varwidth_auxii:
+      {
+        \collectn_set_vbox_varwidth_end: 
+        \exp_not:N \@iiiparbox 
+          {#3} {#4} [#5] { \dim_eval:n {#6} } { \vbox_unpack_drop:N \l__collectn_box }
+        \c_group_end_token
+        \exp_not:n {#2}
+      }
+    \tex_afterassignment:D \__collectn_varwidth_auxi: 
+    \tex_setbox:D #1 \tex_hbox:D 
+  }
+
+\cs_new_protected:Npn \collectn_hbox_auto:Nnnw #1#2 #3 % box num, code, spec,
+  {
+    \str_if_eq:eeTF { \use:n #3 \prg_do_nothing: } { * }
+      { \collectn_box:NNnw #1 \tex_hbox:D {#2} }
+      {
+        \exp_last_unbraced:Ne \__collectn_hbox_auto_aux:nnNn 
+          { \__collectn_hbox_auto_auxi:n {#3} } #1 {#2}
+      }
+  }
+\cs_new:Npn \__collectn_hbox_auto_aux:nnNn #1#2 #3#4
+  {
+    \collectn_box:NNnw #3 { \tex_hbox:D \scan_stop: }
+      {
+        \tl_if_empty:nF {#1}
+          {
+            \hbox_set_to_wd:Nnn #3 {#1}
+              { 
+                \cs_if_exist_use:cF { __collectn_box_h#2:N } 
+                  { \use:c { __collectn_box_h:N } } #3
+              }
+          }
+        #4
+      }
+  }
+\cs_new:Npn \__collectn_hbox_auto_auxi:n #1 
+  {
+    \tl_if_head_eq_charcode:nNTF {#1} [ % ]
+      { \__collectn_hbox_auto_auxii:w #1 \q__collectn_stop }
+      { {} {} }
+  }
+\cs_new:Npn \__collectn_hbox_auto_auxii:w [#1] #2 \q__collectn_stop
+  {
+    { \exp_not:n {#1} } 
+    \tl_if_head_eq_charcode:nNTF {#2} [ % ]
+      { \__collectn_hbox_auto_auxiii:w #2 \q__collectn_stop }
+      { {} }
+  }
+\cs_new:Npn \__collectn_hbox_auto_auxiii:w [#1] #2 \q__collectn_stop { {#1} }
+\cs_new_protected:Npn \collectn_width_auto:Nnnw #1#2 #3 % box num, code, spec,
+  {
+    \exp_last_unbraced:Ne \__collectn_width_auto_aux:nnnnNn 
+      { \__collectn_bracket:n {#3} } #1 {#2}
+  }
+% vpos, height, inner pos, width, box num, code 
+\cs_new:Npn \__collectn_width_auto_aux:nnnnNn #1#2#3#4 #5#6
+  {
+    \tl_if_empty:nTF { #2 #3 }
+      {
+        \tl_if_empty:nTF {#1} 
+          { \collectn_width:Nnnw #5 {#6} {#4} }
+          { \collectn_width:Nnnnw #5 {#6} {#1} {#4} }
+      }
+      {
+        \bool_lazy_and:nnTF { \tl_if_empty_p:n {#2} } { \tl_if_empty_p:n {#1} }
+          { \collectn_width:Nnnw #5 {#6} {#4} }
+          { \collectn_width:Nnnnnnw #5 {#6} {#1} {#2} { \tl_head:w #3c \q_stop } {#4} }
+      }
+  }
+\cs_new:Npn \collectn_minipage_auto:Nnnw { \collectn_width_auto:Nnnw }
+\cs_new_protected:Npn \collectn_varwidth_auto:Nnnw #1#2 #3 % box num, code, spec,
+  {
+    \exp_last_unbraced:Ne \__collectn_varwidth_auto_aux:nnnnNn 
+      { \__collectn_bracket:n {#3} } #1 {#2}
+  }
+% vpos, height, inner pos, width, box num, code 
+\cs_new:Npn \__collectn_varwidth_auto_aux:nnnnNn #1#2#3#4 #5#6
+  {
+    \tl_if_empty:nTF { #2 #3 }
+      {
+        \tl_if_empty:nTF {#1} 
+          { \collectn_varwidth:Nnnw #5 {#6} {#4} }
+          { \collectn_varwidth:Nnnnw #5 {#6} {#1} {#4} }
+      }
+      {
+        \bool_lazy_and:nnTF { \tl_if_empty_p:n {#2} } { \tl_if_empty_p:n {#1} }
+          { \collectn_varwidth:Nnnw #5 {#6} {#4} }
+          { \collectn_varwidth:Nnnnnnw #5 {#6} {#1} {#2} { \tl_head:w #3c \q_stop } {#4} }
+      }
+  }
+
+\cs_new:Npn \__collectn_bracket:n #1
+  {
+    \tl_if_head_eq_charcode:nNTF {#1} [ % ]
+      { \__collectn_bracket_stripi:w #1 \q__collectn_nil \q__collectn_stop }
+      { {} {} {} { \exp_not:o { \use:n #1 } } }
+  }
+\cs_new:Npn \__collectn_bracket_stripi:w [#1] #2 \q__collectn_stop
+  { 
+    {#1} 
+    \tl_if_head_eq_charcode:nNTF {#2} [ % ]
+      { \__collectn_bracket_stripii:w #2 \q__collectn_stop }
+      { {} {} { \__collectn_bracket_end:w #2 } }
+  }
+\cs_new:Npn \__collectn_bracket_stripii:w [#1] #2 \q__collectn_stop
+  {
+    { \exp_not:n {#1} }
+    \tl_if_head_eq_charcode:nNTF {#2} [ % ]
+      { \__collectn_bracket_stripiii:w #2 \q__collectn_stop }
+      { {} { \__collectn_bracket_end:w #2 } }
+  }
+\cs_new:Npn \__collectn_bracket_stripiii:w [#1] #2 \q__collectn_stop
+  { {#1} { \__collectn_bracket_end:w #2 } }
+\cs_new:Npn \__collectn_bracket_end:w #1 \q__collectn_nil % remove one brace (if any)
+  { \exp_not:n {#1} }
+
+\tl_new:N \l__collectn_peeka_tl
+\tl_new:N \l__collectn_peekb_tl
+\tl_new:N \l__collectn_peeks_tl
+\cs_new_protected:Npn \__collectn_peek_N:TF #1#2
+  {
+    \group_align_safe_begin:
+    \tl_set:Nn \l__collectn_peeka_tl { \group_align_safe_end: #1 }
+    \tl_set:Nn \l__collectn_peekb_tl { \group_align_safe_end: #2 }
+    \peek_after:Nw \__collectn_peek_N_aux:
+  }
+\cs_new:Npn \__collectn_peek_N_aux:
+  {
+    \token_case_meaning:NnTF \l_peek_token
+      {
+        \c_group_begin_token { }
+        \c_group_end_token   { }
+        \c_space_token       { }
+      }
+      { \l__collectn_peekb_tl } { \l__collectn_peeka_tl }
+  }
+\cs_new_protected:Npn \__collectn_peek_aval_token:TF #1#2
+  {
+    \group_align_safe_begin:
+    \tl_set:Nn \l__collectn_peeka_tl { \group_align_safe_end: #1 }
+    \tl_set:Nn \l__collectn_peekb_tl { \group_align_safe_end: #2 }
+    \tl_set_eq:NN \l__collectn_peeks_tl \c_empty_tl % save grabbed spaces 
+    \__collectn_peek_aval_token_auxi:n { }
+  }
+\cs_new:Npn \__collectn_peek_aval_token_auxi:n #1
+  {
+    \peek_meaning_remove:NTF \c_space_token 
+      { \__collectn_peek_aval_token_auxi:n { #1~ } }
+      { 
+        \tl_set:Nn \l__collectn_peeks_tl {#1}
+        \peek_after:Nw \__collectn_peek_aval_token_auxii:
+      }
+  }
+\cs_new:Npn \__collectn_peek_aval_token_auxii:
+  {
+    \token_case_meaning:NnTF \l_peek_token
+      {
+        \c_group_begin_token { }
+        \c_group_end_token   { }
+      }
+      { \exp_after:wN \l__collectn_peekb_tl \l__collectn_peeks_tl }
+      { \l__collectn_peeka_tl }
+  }
+\cs_new_protected:Npn \__collectn_remove_filler:n #1
+  {
+    \group_align_safe_begin:
+    \tl_set:Nn \l__collectn_peekb_tl { \group_align_safe_end: #1 }
+    \tl_set_eq:NN \l__collectn_peeks_tl \c_empty_tl
+    \__collectn_remove_filler_aux:
+  }
+\cs_new:Npn \__collectn_remove_filler_aux:
+  {
+    \peek_meaning:NTF \c_space_token
+      { 
+        \tl_put_right:Nn \l__collectn_peeks_tl { ~ }
+        \exp_after:wN \__collectn_remove_filler_aux: \exp:w \exp_end_continue_f:w
+      }
+      {
+        \bool_lazy_or:nnTF { \token_if_group_begin_p:N \l_peek_token }
+          { \token_if_group_end_p:N \l_peek_token }
+          { \l__collectn_peekb_tl }
+          { \__collectn_remove_filler_aux:N }
+      }
+  }
+\cs_new:Npn \__collectn_remove_filler_aux:N #1
+  {
+    \token_if_expandable:NTF #1
+      { \exp_after:wN \__collectn_remove_filler_aux: #1 }
+      {
+        \token_if_eq_meaning:NNTF #1 \scan_stop:
+          { 
+            \tl_put_right:Nn \l__collectn_peeks_tl {#1}
+            \__collectn_remove_filler_aux:
+          }
+          { \l__collectn_peekb_tl #1 }
+      }
+  }
+
+\cs_new:Npn \__collectn_tl_even_items:Nn #1#2
+  {
+    \__collectn_tl_even_items_loop:Nnn #1#2 \q__collectn_stop \q__collectn_stop
+    \prg_break_point:
+  }
+\cs_new:Npn \__collectn_tl_even_items_loop:Nnn #1#2#3
+  {
+    \__collectn_use_none_delimit_by_q_stop:nw { } #3 \prg_break: \q__collectn_stop
+    #1 { \exp_not:n {#3} }
+    \__collectn_tl_even_items_loop:Nnn #1
+  }
+\cs_new_protected:Npn \__collectn_str_pop_left:NN #1#2 % str, head 
+  {
+    \tl_if_empty:NTF #1 { \tl_set_eq:NN #2 \c_empty_tl }
+      { 
+        \cs_set_nopar:Npx #2 
+          { 
+            \exp_after:wN \__collectn_str_pop_left_aux:NNw
+            \exp_after:wN #1 #1 
+          } 
+      }
+  }
+\cs_new:Npn \__collectn_str_pop_left_aux:NNw #1 #2
+  {
+    #2 \if_false: { \fi: }
+    \exp_after:wN \cs_set_nopar:Npx \exp_after:wN #1 \exp_after:wN 
+      { \if_false: } \fi:
+  }
+
+\cs_new_eq:NN \__collectn_peek_meaning:NTF \__cmd_peek_meaning:NTF 
+\tl_new:N \l__collectn_nesting_a_tl
+\tl_new:N \l__collectn_nesting_b_tl
+\tl_new:N \l__collectn_dela_tl
+\tl_new:N \l__collectn_delb_tl
+\tl_new:N \l__collectn_delc_tl
+
+\tl_new:N \l__collectn_cmpa_tl
+\tl_new:N \l__collectn_cmpb_tl
+
+\cs_new_protected:Npn \__collectn_peeker:TF { \peek_N_type:TF }
+\cs_new_protected:Npn \__collectn_peeker:NTF { \__collectn_peek_meaning:NTF }
+\cs_new_protected:Npn \collectn_if_in:nTF #1#2#3
+  {
+    \group_align_safe_begin:
+    \tl_set:Nn \l__collectn_delc_tl {#1}
+    \tl_set:Nn \l__collectn_dela_tl { \group_align_safe_end: #2 }
+    \tl_set:Nn \l__collectn_delb_tl { \group_align_safe_end: #3 }
+    \__collectn_peeker:TF { \__collectn_if_in:N } { \l__collectn_delb_tl }
+  }
+\cs_new:Npn \__collectn_if_in:N #1
+  { % to support #, cannot use \tl_if_in:NnTF
+    \exp_last_unbraced:Nno \__collectn_if_in_aux:nn 
+      {#1} \l__collectn_delc_tl \q__collectn_stop
+    \l__collectn_delb_tl #1
+  }
+\cs_new:Npn \__collectn_if_in_aux:nn #1#2
+  {
+    \tl_set:Nn \l__collectn_cmpa_tl {#1}
+    \tl_set:Nn \l__collectn_cmpb_tl {#2}
+    \tl_if_eq:NNF \l__collectn_cmpb_tl \q__collectn_stop
+      {
+        \tl_if_eq:NNTF \l__collectn_cmpa_tl \l__collectn_cmpb_tl
+          {
+            \__collectn_use_none_delimit_by_q_stop:nw  
+              { \use_i:nn \l__collectn_dela_tl }
+          }
+          { \__collectn_if_in_aux:nn {#1} }
+      }
+  }
+
+\cs_new_protected:Npn \collectdelimitedarg #1#2 #3#4
+  {
+    \group_align_safe_begin:
+    \tl_set:Nn \l__collectn_delb_tl {#4}
+    \__collectn_del_def:n 
+      { \group_align_safe_end: \tl_set:Nn #3 {##1} \l__collectn_delb_tl }
+    \__collectn_peeker:NTF #1
+      { \__collectn_del_aux:Nn #1 {#2} }
+      { \exp_args:NV \__collectn_del_do:n \c_novalue_tl }
+  }
+\cs_new_protected:Npn \collectn_delimited_inline:Nnn #1#2 #3
+  {
+    \group_align_safe_begin:
+    \__collectn_del_def:n { \group_align_safe_end: #3 }
+    \__collectn_peeker:NTF #1
+      { \__collectn_del_aux:Nn #1 {#2} }
+      { \__collectn_del_do:n { \q_no_value } }
+  }
+\cs_new_protected:Npn \collectn_delimited_variable:NnNn #1#2 #3#4
+  {
+    \group_align_safe_begin:
+    \tl_set:Nn \l__collectn_delb_tl {#4}
+    \__collectn_del_def:n 
+      { \group_align_safe_end: \tl_set:Nn #3 {##1} \l__collectn_delb_tl }
+    \__collectn_peeker:NTF #1
+      { \__collectn_del_aux:Nn #1 {#2} }
+      { \__collectn_del_do:n { \q_no_value } }
+  }
+\cs_new_protected:Npn \collectn_delimited_any_inline:nn #1 #2
+  {
+    \group_align_safe_begin:
+    \tl_set:Nn \l__collectn_dela_tl { { 0 } { \q_no_value } }
+    \cs_set:Npn \__collectn_del_tmpa:w ##1##2
+      { \group_align_safe_end: #2 }
+    \cs_set:Npn \__collectn_del_tmp:w ##1
+      {
+        \cs_set:Npn \__collectn_del_tmp:w ####1 ##1 ####2 \q__collectn_stop
+          {
+            \tl_if_empty:nTF {####2} 
+              { 
+                \exp_after:wN \exp_after:wN \exp_after:wN \__collectn_del_tmpa:w
+                \exp_after:wN \l__collectn_dela_tl \l__collectn_peeks_tl ##1
+              }
+              {
+                \cs_set_nopar:Npx \l__collectn_dela_tl { \tl_count:n { ####1 ##1 } }
+                \__collectn_delimited_any:Nn ##1 {#1} ##1
+              }
+          }
+        \exp_last_unbraced:Ne \__collectn_del_tmp:w 
+          { \__collectn_tl_even_items:Nn \use:n { ? #1 } } ##1 \q__collectn_stop
+      }
+    \__collectn_peek_aval_token:TF
+      {
+        \token_if_parameter:NTF \l_peek_token 
+          { 
+            \exp_after:wN \exp_after:wN \exp_after:wN \__collectn_del_tmpa:w 
+            \exp_after:wN \l__collectn_dela_tl \l__collectn_peeks_tl
+          } 
+          { \__collectn_del_tmp:w }
+      }
+      { \exp_after:wN \__collectn_del_tmp:w \l__collectn_dela_tl }
+  }
+\cs_new_protected:Npn \__collectn_delimited_any:Nn #1#2
+  {
+    \cs_set:Npn \__collectn_del_tmp:w ##1#1##2##3 \q__ekeys_stop
+      {
+        \__collectn_del_def:n 
+          { \exp_after:wN \__collectn_del_tmpa:w \l__collectn_dela_tl {####1} }
+        \__collectn_del_aux:Nn #1 {##2}
+      }
+    \__collectn_del_tmp:w #2 \q__ekeys_stop
+  }
+
+\cs_new_protected:Npn \__collectn_del_do:n #1 { }
+\cs_new_protected:Npn \__collectn_del_def:n 
+  { \cs_set_protected:Npn \__collectn_del_do:n ##1 }
+\cs_new_protected:Npn \__collectn_del_aux:w { }
+\cs_new_protected:Npn \__collectn_del_aux:Nn #1#2 #3 % #2 maybe blank 
+  {
+    \tl_if_empty:nTF {#2}
+      { \__collectn_del_do:n }
+      {
+        \cs_set_protected:Npn \__collectn_del_aux:w ##1 #2
+          {
+            \exp_after:wN \tl_if_in:nnTF \exp_after:wN { \use_none:n ##1 } {#1}
+              { \__collectn_del_aux:Nnn #1 {#2} {##1} }
+              { \__collectn_del_do:w ##1 \q__collectn_stop }
+          }
+        \__collectn_del_aux:w \q__collectn_mark
+      }
+  }
+\cs_new:Npn \__collectn_del_do:w \q__collectn_mark #1 \q__collectn_stop 
+  { \__collectn_del_do:n {#1} }
+% basicly copy from \__cmd_grab_D_nested:NNnN 
+\cs_new:Npn \__collectn_grab_D_nested:w #1 \q_nil \q_stop 
+  { \exp_not:o { \use_none:n #1 } }
+\cs_new_eq:NN \__collectn_del_tmp:w ?
+\cs_new_eq:NN \__collectn_del_tmpa:w ?
+\cs_new_eq:NN \__collectn_del_tmpb:w ?
+\cs_set_protected:Npn \__collectn_del_aux:Nnn #1#2#3 
+  {
+    \tl_clear:N \l__collectn_nesting_a_tl 
+    \tl_clear:N \l__collectn_nesting_b_tl 
+    \cs_set_protected:Npn \__collectn_del_tmp:w ##1#1##2 \q__collectn_mark ##3#2
+      {
+        \exp_after:wN \tl_put_right:Nn 
+          \exp_after:wN \l__collectn_nesting_a_tl \exp_after:wN { \use_none:n ##1#1 }
+        \exp_after:wN \tl_put_right:Nn 
+          \exp_after:wN \l__collectn_nesting_b_tl \exp_after:wN { \use_i:nn {#2} ##3 }
+        \tl_if_in:nnTF {##2} {#1}
+          { \__collectn_del_tmp:w \q_nil ##2 \q__collectn_mark \ERROR }
+          {
+            \tl_put_right:Nx \l__collectn_nesting_a_tl 
+              { \__collectn_grab_D_nested:w \q_nil ##2 \q_stop }
+            \tl_if_in:NnTF \l__collectn_nesting_b_tl {#1}
+              {
+                \tl_set_eq:NN \l__collectn_dela_tl \l__collectn_nesting_b_tl 
+                \tl_clear:N \l__collectn_nesting_b_tl 
+                \exp_after:wN \__collectn_del_tmp:w 
+                \exp_after:wN \q_nil \l__collectn_dela_tl \q_nil \q__collectn_mark \ERROR 
+              }
+              {
+                \tl_put_right:No \l__collectn_nesting_a_tl \l__collectn_nesting_b_tl 
+                \exp_args:No \__collectn_del_do:n \l__collectn_nesting_a_tl 
+              }
+          }
+      }
+    \__collectn_del_tmp:w #3 \q_nil \q__collectn_mark \ERROR
+  }
+
+\tl_new:N \l__collectn_kwa_tl
+\tl_new:N \l__collectn_kwb_tl
+\tl_new:N \l__collectn_kwc_tl
+\tl_new:N \l__collectn_kws_tl
+\tl_new:N \l__collectn_tmpa_tl
+\tl_new:N \l__collectn_tmpb_tl
+\int_new:N \l__collectn_tmp_int
+\bool_new:N \l__collectn_first_bool
+\newtoks \l__collectn_tmp_toks
+
+\tl_new:N \l__collectn_lohis_tl
+\tl_const:Nx \c__collectn_superscript_tl { \char_generate:nn { `\^ } { 7 } }
+\tl_const:Nx \c__collectn_subscript_tl { \char_generate:nn { `\_ } { 8 } }
+\cs_new_protected:Npn \collectn_lohi:Nnw #1#2
+  {
+    \group_align_safe_begin:
+    \tl_set:Nn \l__collectn_kwb_tl 
+      { 
+        \group_align_safe_end: 
+        \tl_set_eq:NN #1 \l__collectn_lohis_tl 
+        #2 
+      }
+    \tl_clear:N \l__collectn_lohis_tl
+    \__collectn_lohi_next:N ?
+  }
+\cs_new:Npn \__collectn_lohi_auxi:NNNw #1#2 #3
+  {
+    \__collectn_remove_filler:n
+      {
+        \token_if_group_begin:NTF \l_peek_token
+          {
+            \collectn_value:Nnw \l__collectn_tmp_toks
+              { 
+                \tl_put_right:Nx \l__collectn_lohis_tl
+                  { { #1 { \tex_the:D \l__collectn_tmp_toks } } }
+                \__collectn_lohi_next:N #2
+              } =
+          }
+          { \__collectn_lohi_auxii:NNn #1#2 }
+      }
+  }
+\cs_new:Npn \__collectn_lohi_auxii:NNn #1#2 #3
+  { 
+    \tl_put_right:Nx \l__collectn_lohis_tl { { #1 { \exp_not:n {#3} } } }
+    \__collectn_lohi_next:N #2
+  }
+\cs_new:Npn \__collectn_lohi_next:N #1 { \cs:w __collectn_lohi_#1:w \cs_end: }
+\cs_new:Npn \__collectn_lohi_:w 
+  { \exp_after:wN \l__collectn_kwb_tl \l__collectn_peeks_tl }
+\cs_new:cpn { __collectn_lohi_?:w }
+  {
+    \__collectn_remove_filler:n 
+      {
+        \token_if_math_superscript:NTF \l_peek_token
+          { 
+            \__collectn_lohi_auxi:NNNw 
+              \c__collectn_superscript_tl \c__collectn_subscript_tl 
+          }
+          {
+            \token_if_math_subscript:NTF \l_peek_token
+              { 
+                \__collectn_lohi_auxi:NNNw 
+                  \c__collectn_subscript_tl \c__collectn_superscript_tl 
+              }
+              { \__collectn_lohi_:w }
+          }
+      }
+  }
+\cs_new:cpn { __collectn_lohi_ \c__collectn_superscript_tl :w }
+  {
+    \__collectn_remove_filler:n 
+      {
+        \token_if_math_superscript:NTF \l_peek_token
+          { \__collectn_lohi_auxi:NNNw \c__collectn_superscript_tl \c_empty_tl }
+          { \__collectn_lohi_:w }
+      }
+  }
+\cs_new:cpn { __collectn_lohi_ \c__collectn_subscript_tl :w }
+  {
+    \__collectn_remove_filler:n 
+      {
+        \token_if_math_subscript:NTF \l_peek_token
+          { \__collectn_lohi_auxi:NNNw \c__collectn_subscript_tl \c_empty_tl }
+          { \__collectn_lohi_:w }
+      }
+  }
+\cs_new_protected:Npn \collectn_lohis:Nnw #1#2
+  {
+    \group_align_safe_begin:
+    \tl_set:Nn \l__collectn_kwb_tl 
+      { 
+        \group_align_safe_end: 
+        \tl_set_eq:NN #1 \l__collectn_lohis_tl 
+        #2 
+      }
+    \tl_clear:N \l__collectn_lohis_tl
+    \__collectn_lohis_next:
+  }
+\cs_new:Npn \__collectn_lohis_next:
+  {
+    \__collectn_remove_filler:n 
+      {
+        \token_if_math_superscript:NTF \l_peek_token
+          { \__collectn_lohis_auxi:NNw \c__collectn_superscript_tl }
+          {
+            \token_if_math_subscript:NTF \l_peek_token
+              { \__collectn_lohis_auxi:NNw \c__collectn_subscript_tl }
+              { \exp_after:wN \l__collectn_kwb_tl \l__collectn_peeks_tl }
+          }
+      }
+  }
+\cs_new:Npn \__collectn_lohis_auxi:NNw #1 #2
+  {
+    \__collectn_remove_filler:n 
+      {
+        \token_if_group_begin:NTF \l_peek_token
+          {
+            \collectn_value:Nnw \l__collectn_tmp_toks
+              { 
+                \tl_put_right:Nx \l__collectn_lohis_tl
+                  { { #1 { \tex_the:D \l__collectn_tmp_toks } } }
+                \__collectn_lohis_next:
+              } =
+          }
+          { \__collectn_lohis_auxii:Nn #1 }
+      }
+  }
+\cs_new:Npn \__collectn_lohis_auxii:Nn #1#2
+  {
+    \tl_put_right:Nx \l__collectn_lohis_tl { { #1 { \exp_not:n {#2} } } }
+    \__collectn_lohis_next:
+  }
+
+\str_new:N \l__collectn_keyword_str
+\cs_new_protected:Npn \collectn_set_keyword:Nn #1#2
+  { \tl_set:Nx #1 { \elkernel_str_to_other_fast:n {#2} } }
+\cs_generate_variant:Nn \collectn_set_keyword:Nn { No, NV, Nv, Ne, cn, co, cV, cv, ce }
+
+\tl_new:N \l__collectn_keywords_tl
+\cs_new_protected:Npn \collectn_set_keywords:Nn #1#2
+  { \__collectn_set_keywords_aux:Nn #1 { \clist_map_inline:nn {#2} } }
+\cs_generate_variant:Nn \collectn_set_keywords:Nn { No, NV, Nv, Ne, cn, co, cV, cv, ce }
+\cs_new_protected:Npn \collectn_set_keywords_from_seq:NN #1#2
+  { \__collectn_set_keywords_aux:Nn #1 { \seq_map_inline:Nn #2 } }
+\cs_new:Npn \__collectn_set_keywords_aux:Nn #1#2
+  {
+    \tl_set_eq:NN #1 \c_empty_tl
+    \int_zero:N \l__collectn_tmp_int
+    #2
+      { 
+        \collectn_set_keyword:Nn \l__collectn_tmpa_tl {##1}
+        \tl_if_empty:NF \l__collectn_tmpa_tl
+          { 
+            \int_incr:N \l__collectn_tmp_int
+            \cs_set_nopar:Npx #1 
+              { { \int_use:N \l__collectn_tmp_int } { \l__collectn_tmpa_tl } #1 }
+          }
+      }
+  }
+\cs_generate_variant:Nn \collectn_set_keywords_from_seq:NN { Nc, cN, cc }
+\cs_new:Npn \__collectn_keywords_map_tokens:nn #1#2
+  {
+    \__collectn_keywords_map_tokens_aux:nnn {#2} #1 
+      \q_recursion_tail \q_recursion_tail \q_recursion_stop
+  }
+\cs_new:Npn \__collectn_keywords_map_tokens:Nn #1#2
+  {
+    \exp_last_unbraced:Nno \__collectn_keywords_map_tokens_aux:nnn {#2} #1
+      \q_recursion_tail \q_recursion_tail \q_recursion_stop
+  }
+\cs_new:Npn \__collectn_keywords_map_tokens_aux:nnn #1 #2#3
+  {
+    \quark_if_recursion_tail_stop:n {#3}
+    #1 {#2} {#3}
+    \__collectn_keywords_map_tokens_aux:nnn {#1}
+  }
+\cs_new:Npn \__collectn_keywords_map_tokens_break:
+  { \use_none_delimit_by_q_recursion_stop:w }
+
+\cs_new_protected:Npn \collectn_scan_keyword:NTF #1
+  {
+    \str_set_eq:NN \l__collectn_keyword_str #1
+    \__collectn_scan_keyword_aux:Nnn \str_casefold:n
+  }
+\cs_new_protected:Npn \collectn_scan_keyword:NT #1#2
+  { \collectn_scan_keyword:NTF #1 {#2} { } }
+\cs_new_protected:Npn \collectn_scan_keyword:NF #1
+  { \collectn_scan_keyword:NTF #1 { } }
+\prg_generate_conditional_variant:Nnn \collectn_scan_keyword:N { c } { T, F, TF }
+\cs_new_protected:Npn \collectn_scan_keyword:nTF #1
+  {
+    \collectn_set_keyword:Nn \l__collectn_keyword_str {#1}
+    \__collectn_scan_keyword_aux:Nnn \str_casefold:n
+  }
+\cs_new_protected:Npn \collectn_scan_keyword:nT #1#2
+  { \collectn_scan_keyword:nTF {#1} {#2} { } }
+\cs_new_protected:Npn \collectn_scan_keyword:nF #1
+  { \collectn_scan_keyword:nTF {#1} { } }
+\cs_new_protected:Npn \collectn_scan_keywordcs:NTF #1
+  {
+    \str_set_eq:NN \l__collectn_keyword_str #1
+    \__collectn_scan_keyword_aux:Nnn \token_to_str:N
+  }
+\cs_new_protected:Npn \collectn_scan_keywordcs:NT #1#2
+  { \collectn_scan_keywordcs:NTF #1 {#2} { } }
+\cs_new_protected:Npn \collectn_scan_keywordcs:NF #1
+  { \collectn_scan_keywordcs:NTF #1 { } }
+\prg_generate_conditional_variant:Nnn \collectn_scan_keywordcs:N { c } { T, F, TF }
+\cs_new_protected:Npn \collectn_scan_keywordcs:nTF #1
+  {
+    \collectn_set_keyword:Nn \l__collectn_keyword_str {#1}
+    \__collectn_scan_keyword_aux:Nnn \token_to_str:N
+  }
+\cs_new_protected:Npn \collectn_scan_keywordcs:nT #1#2
+  { \collectn_scan_keywordcs:nTF {#1} {#2} { } }
+\cs_new_protected:Npn \collectn_scan_keywordcs:nF #1
+  { \collectn_scan_keywordcs:nTF {#1} { } }
+\cs_new:Npn \__collectn_scan_keyword_aux:Nnn #1#2#3
+  {
+    \group_begin:
+    \group_align_safe_begin:
+    \int_set:Nn \tex_escapechar:D { `\\ }
+    \tl_set:Nn \l__collectn_kwa_tl { \group_align_safe_end: \group_end: #2 }
+    \tl_set:Nn \l__collectn_kwb_tl { \group_align_safe_end: \group_end: #3 }
+    \tl_clear:N \l__collectn_kws_tl
+    \bool_set_true:N \l__collectn_first_bool
+    \str_if_empty:NTF \l__collectn_keyword_str
+      { \l__collectn_kwb_tl } { \__collectn_keyword_scan:N #1 }
+  }
+\cs_new:Npn \__collectn_keyword_scan:N #1
+  {
+    \__collectn_peek_aval_token:TF 
+      { \__collectn_keyword_loop:NN #1 }
+      { \exp_after:wN \l__collectn_kwb_tl \l__collectn_kws_tl }
+  }
+\cs_new:Npn \__collectn_keyword_scan_middle:N #1
+  {
+    \peek_N_type:TF { \__collectn_keyword_loop:NN #1 }
+      { \exp_after:wN \l__collectn_kwb_tl \l__collectn_peeks_tl }
+  }
+\cs_new:Npn \__collectn_keyword_loop:NN #1#2
+  {
+    \__collectn_token_if_char:NTF #2
+      {
+        \token_if_active:NTF #2
+          { \exp_after:wN \l__collectn_kwb_tl \l__collectn_peeks_tl #2 }
+          {
+            \bool_if:NT \l__collectn_first_bool 
+              { \bool_set_false:N \l__collectn_first_bool }
+            \tl_put_right:No \l__collectn_peeks_tl { \l__collectn_kws_tl #2 }
+            \__collectn_str_pop_left:NN \l__collectn_keyword_str \l__collectn_kwc_tl
+            \exp_after:wN \__collectn_kwcmp:NNNTF \l__collectn_kwc_tl #2 #1
+              { \__collectn_keyword_loop:N #1 }
+              { \exp_after:wN \l__collectn_kwb_tl \l__collectn_peeks_tl }
+          }
+      }
+      {
+        \token_if_expandable:NTF #2
+          { 
+            \bool_if:NTF \l__collectn_first_bool
+              { 
+                \tl_put_right:No \l__collectn_kws_tl \l__collectn_peeks_tl
+                \exp_last_unbraced:NNo \__collectn_keyword_scan:N #1 #2 
+              }
+              { \exp_last_unbraced:NNo \__collectn_keyword_scan_middle:N #1 #2 }
+          }
+          { \exp_after:wN \l__collectn_kwb_tl \l__collectn_peeks_tl #2 }
+      }
+  }
+\cs_new:Npn \__collectn_keyword_loop:N #1
+  {
+    \str_if_empty:NTF \l__collectn_keyword_str
+      { \l__collectn_kwa_tl }
+      { \__collectn_keyword_scan_middle:N #1 }
+  }
+\cs_new:Npn \__collectn_kwcmp:NNNTF #1#2 #3 % #2 might be charcode=32 or catcode=6
+  {
+    \bool_lazy_and:nnTF 
+      { \if_int_compare:w `#2 = 32 ~ 1 \else: 0 \fi: }
+      { \if_int_compare:w `#1 = 32 ~ 1 \else: 0 \fi: }
+      { \use_i:nn }
+      {
+        \str_if_eq:eeTF { #3 #1 }
+          {
+            \token_if_parameter:NTF #2 
+              { \exp_after:wN #3 \token_to_str:N #2 }
+              { #3 #2 }
+          }
+      }
+  }
+
+\int_new:N \l_collectn_keywords_int
+\str_new:N \l_collectn_keywords_str
+\tl_new:N \l__collectn_keywords_last_match_tl
+\cs_new_protected:Npn \collectn_scan_keywords:nTF #1
+  {
+    \collectn_set_keywords:Nn \l__collectn_keywords_tl {#1}
+    \__collectn_scan_keywords_aux:Nnn \str_casefold:n
+  }
+\cs_new_protected:Npn \collectn_scan_keywords:nT #1#2
+  { \collectn_scan_keywords:nTF {#1} {#2} { } }
+\cs_new_protected:Npn \collectn_scan_keywords:nF #1
+  { \collectn_scan_keywords:nTF {#1} { } }
+\cs_new_protected:Npn \collectn_scan_keywordscs:nTF #1
+  {
+    \collectn_set_keywords:Nn \l__collectn_keywords_tl {#1}
+    \__collectn_scan_keywords_aux:Nnn \token_to_str:N
+  }
+\cs_new_protected:Npn \collectn_scan_keywordscs:nT #1#2
+  { \collectn_scan_keywordscs:nTF {#1} {#2} { } }
+\cs_new_protected:Npn \collectn_scan_keywordscs:nF #1
+  { \collectn_scan_keywordscs:nTF {#1} { } }
+\cs_new_protected:Npn \collectn_scan_keywords:NTF #1
+  {
+    \tl_set_eq:NN \l__collectn_keywords_tl #1
+    \__collectn_scan_keywords_aux:Nnn \str_casefold:n
+  }
+\cs_new_protected:Npn \collectn_scan_keywords:NT #1#2
+  { \collectn_scan_keywords:NTF #1 {#2} { } }
+\cs_new_protected:Npn \collectn_scan_keywords:NF #1
+  { \collectn_scan_keywords:NTF #1 { } }
+\prg_generate_conditional_variant:Nnn \collectn_scan_keywords:N { c } { T, F, TF }
+\cs_new_protected:Npn \collectn_scan_keywordscs:NTF #1
+  {
+    \tl_set_eq:NN \l__collectn_keywords_tl #1
+    \__collectn_scan_keywords_aux:Nnn \token_to_str:N
+  }
+\cs_new_protected:Npn \collectn_scan_keywordscs:NT #1#2
+  { \collectn_scan_keywordscs:NTF #1 {#2} { } }
+\cs_new_protected:Npn \collectn_scan_keywordscs:NF #1
+  { \collectn_scan_keywordscs:NTF #1 { } }
+\prg_generate_conditional_variant:Nnn \collectn_scan_keywordscs:N { c } { T, F, TF }
+\cs_new:Npn \__collectn_scan_keywords_aux:Nnn #1#2#3
+  {
+    \group_align_safe_begin:
+    \group_begin:
+    \int_set:Nn \tex_escapechar:D { `\\ }
+    \tl_set:Nn \l__collectn_kwa_tl { \group_align_safe_end: #2 }
+    \tl_set:Nn \l__collectn_kwb_tl { \group_align_safe_end: #3 }
+    \tl_set:Nn \l__collectn_kwc_tl { #1 }
+    \tl_clear:N \l__collectn_kws_tl
+    \tl_clear:N \l__collectn_keywords_last_match_tl
+    \bool_set_true:N \l__collectn_first_bool
+    \cs_gset:Npx \__collectn_keywords_keyword:Nn ##1##2
+      {
+        \cs_set_nopar:Npx ##1
+          {
+            \exp_not:N \__collectn_keywords_map_tokens:nn 
+              { \exp_not:o \l__collectn_keywords_tl }
+              { \exp_not:N \__collectn_keywords_keyword:nnn {##2} }
+          }
+      }
+    \tl_if_empty:NTF \l__collectn_keywords_tl
+      { \tl_clear:N \l__collectn_peeks_tl \__collectn_keywords_back: } 
+      { \__collectn_keywords_scan: }
+  }
+\cs_new:Npn \__collectn_keywords_scan:
+  {
+    \__collectn_peek_aval_token:TF 
+      { \__collectn_keywords_loop:N } 
+      { 
+        \tl_set_eq:NN \l__collectn_peeks_tl \l__collectn_kws_tl
+        \__collectn_keywords_back:
+      }
+  }
+\cs_new:Npn \__collectn_keywords_scan_middle:
+  {
+    \peek_N_type:TF
+      { \__collectn_keywords_loop:N } 
+      { \__collectn_keywords_back: }
+  }
+\cs_new:Npn \__collectn_keywords_loop:N #1
+  {
+    \__collectn_token_if_char:NTF #1
+      {
+        \token_if_active:NTF #1
+          { \__collectn_keywords_back: #1 }
+          {
+            \bool_if:NT \l__collectn_first_bool
+              { \bool_set_false:N \l__collectn_first_bool }
+            \tl_put_right:No \l__collectn_peeks_tl { \l__collectn_kws_tl #1 }
+            \cs_set_nopar:Npx \l__collectn_keywords_tl
+              {
+                \__collectn_keywords_map_tokens:Nn \l__collectn_keywords_tl
+                  { \__collectn_keywords_loop_aux:Nnn #1 }
+              }
+            \tl_if_empty:NTF \l__collectn_keywords_tl
+              { \__collectn_keywords_back: }
+              { \__collectn_keywords_loop: }
+          }
+      }
+      {
+        \token_if_expandable:NTF #1
+          { 
+            \bool_if:NTF \l__collectn_first_bool
+              { 
+                \tl_put_right:No \l__collectn_kws_tl \l__collectn_peeks_tl
+                \exp_last_unbraced:No \__collectn_keywords_scan: #1 
+              }
+              { \exp_last_unbraced:No \__collectn_keywords_scan_middle: #1 }
+          }
+          { \__collectn_keywords_back: #1 }
+      }
+  }
+\cs_new:Npn \__collectn_keywords_loop_aux:Nnn #1 #2 #3 % #3 never be empty
+  {
+    \exp_after:wN \__collectn_kwcmp:NNNTF \tl_head:w #3 \q_stop #1 \l__collectn_kwc_tl
+      { {#2} { \use_none:n #3 } } { }
+  }
+\cs_new:Npn \__collectn_keywords_loop: 
+  {
+    \cs_set_nopar:Npx \l__collectn_tmpa_tl % non-empty entries
+      {
+        \__collectn_keywords_map_tokens:Nn \l__collectn_keywords_tl
+          { \__collectn_keywords_loop_aux:nn }
+      }
+    \tl_if_empty:NTF \l__collectn_tmpa_tl
+      { % all entries is empty, finish
+        \__collectn_keywords_end:e { \tl_head:N \l__collectn_keywords_tl }
+      }
+      { 
+        \tl_set:Nx \l__collectn_keywords_last_match_tl
+          {
+            \__collectn_keywords_map_tokens:Nn \l__collectn_keywords_tl
+              { \__collectn_keywords_first_empty:nn }
+          }
+        \cs_set_eq:NN \l__collectn_keywords_tl \l__collectn_tmpa_tl
+        \__collectn_keywords_scan_middle: 
+      }
+  }
+\cs_new:Npn \__collectn_keywords_loop_aux:nn #1#2
+  { \tl_if_empty:nT {#2} \use_none:nn {#1} {#2} }
+\cs_new:Npn \__collectn_keywords_first_empty:nn #1#2
+  { \tl_if_empty:nT {#2} { #1 \__collectn_keywords_map_tokens_break: } }
+\cs_new:Npn \__collectn_keywords_back:
+  {
+    \tl_if_empty:NTF \l__collectn_keywords_last_match_tl
+      {
+        \use:e 
+          {
+            \group_end:
+            \int_zero:N \l_collectn_keywords_int
+            \tl_clear:N \exp_not:N \l_collectn_keywords_str
+            \exp_not:o \l__collectn_kwb_tl
+            \exp_not:o \l__collectn_peeks_tl
+          }
+      }
+      { \__collectn_keywords_end:e \l__collectn_keywords_last_match_tl }
+  }
+\cs_new:Npn \__collectn_keywords_end:n #1
+  {
+    \use:e
+      {
+        \group_end: 
+        \int_set:Nn \l_collectn_keywords_int {#1}
+        \exp_not:N \__collectn_keywords_keyword:Nn 
+          \exp_not:N \l_collectn_keywords_str {#1}
+        \exp_not:o \l__collectn_kwa_tl
+      }
+  }
+\cs_generate_variant:Nn \__collectn_keywords_end:n { e }
+\cs_new_eq:NN \__collectn_keywords_keyword:Nn \use_none:nn
+\cs_new:Npn \__collectn_keywords_keyword:nnn #1 #2#3
+  { \if_int_compare:w #1 = #2 ~ #3 \fi: }

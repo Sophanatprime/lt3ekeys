@@ -1,0 +1,323 @@
+% lt3ekeyscmd.sty 
+% Copyright 2023, 2024 Wenjian Chern.
+%
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3c
+% of this license or any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3c or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+%
+% This work has the LPPL maintenance status `maintained'.
+% 
+% The Current Maintainer of this work is Wenjian Chern.
+%
+% This work consists of the files lt3ekeys.sty, lt3ekeyscmd.sty,
+% lt3ekeysext.sty, lt3ekeys-elkernel.sty, lt3ekeys-collectn.sty,
+% lt3ekeys.tex and lt3ekeys-usrguide-cn.tex.
+%
+\ProvidesExplPackage{lt3ekeys-elkernel}{2024/03/18}{v0.2}{export latex and latex3 kernel function}
+
+\cs_new_eq:NN \elkernel_cmd_if_xparse:NTF \__kernel_cmd_if_xparse:NTF
+\int_new:N \g_elkernel_prg_map_int
+\cs_new_eq:NN \elkernel_str_to_other_fast:n \__kernel_str_to_other_fast:n
+\cs_new_eq:NN \elkernel_chk_if_free_cs:N \__kernel_chk_if_free_cs:N
+\cs_new_eq:NN \elkernel_tl_set:Nx \tex_edef:D
+\cs_new_eq:NN \elkernel_tl_gset:Nx \tex_xdef:D
+\cs_new_eq:NN \elkernel_quark_new_test:N \__kernel_quark_new_test:N
+\cs_new_eq:NN \elkernel_quark_new_conditional:Nn \__kernel_quark_new_conditional:Nn
+\cs_new_eq:NN \elkernel_backend_literal_pdf:e \__kernel_backend_literal_pdf:e
+\cs_new_eq:NN \elkernel_exp_not:w \tex_unexpanded:D
+\cs_new_eq:NN \elkernel_exp:w \tex_expanded:D
+\cs_new_eq:NN \elkernel_file_name_sanitize:n \__kernel_file_name_sanitize:n
+\cs_new_eq:NN \elkernel_int_expr:w \tex_numexpr:D
+\cs_new_eq:NN \elkernel_dim_expr:w \tex_dimexpr:D
+
+\quark_new:N \q__elkernel_recursion_stop
+\quark_new:N \q__elkernel_recursion_tail
+\elkernel_quark_new_test:N \__elkernel_if_recursion_tail_stop_do:Nn
+
+% full copy of \__cmd_arg_to_keyvalue:nn
+\tl_new:N \l__elkernel_keyvalue_tl
+\cs_new_protected:Npn \elkernel_set_arg_to_keyvalue:Nnn #1#2#3
+  {
+    \__elkernel_arg_to_keyvalue:nn {#2} {#3}
+    \tl_set_eq:NN #1 \l__elkernel_keyvalue_tl
+  }
+\cs_new_protected:Npn \__elkernel_arg_to_keyvalue:nn #1#2
+  {
+    \tl_trim_spaces_apply:nN {#2} \__elkernel_arg_to_keyvalue_braces:nnn
+      {#1} {#2}
+  }
+\cs_new_protected:Npn \__elkernel_arg_to_keyvalue_braces:nnn #1#2#3
+  {
+    \tl_if_head_is_group:nT {#1}
+      {
+        \tl_if_blank:oT { \use_none:n #1 }
+          {
+            \tl_set:Nx \l__elkernel_keyvalue_tl { \exp_not:n {#2} = { \exp_not:n #1 } }
+            \use_none:nnnn
+          }
+      }
+    \__elkernel_arg_to_keyvalue_auxi:nnn {#1} {#2} {#3}
+  }
+\cs_new:Npn \__elkernel_arg_to_keyvalue_auxi:nnn #1
+  {
+    \tl_if_head_is_N_type:nTF {#1}
+      { \__elkernel_split_N_head_apply:Nn \__elkernel_arg_to_keyvalue_auxii:Nnnn {#1} }
+      { \__elkernel_arg_to_keyvalue_auxv:nn }
+  }
+\cs_new:Npn \__elkernel_arg_to_keyvalue_auxii:Nnnn #1#2
+  {
+    \str_if_eq:eeTF { \exp_not:n {#1} } { = }
+      { \tl_trim_spaces_apply:nN {#2} \__elkernel_arg_to_keyvalue_auxiii:nnn }
+      { \__elkernel_arg_to_keyvalue_auxv:nn }
+  }
+\cs_new:Npn \__elkernel_arg_to_keyvalue_auxiii:nnn #1
+  {
+    \tl_if_head_is_N_type:nTF {#1}
+      { \__elkernel_split_N_head_apply:Nn \__elkernel_arg_to_keyvalue_auxiv:Nnnn {#1} }
+      { \__elkernel_arg_to_keyvalue_auxv:nn }
+  }
+\cs_new:Npn \__elkernel_arg_to_keyvalue_auxiv:Nnnn #1#2
+  {
+    \str_if_eq:eeTF { \exp_not:n {#1} } { , }
+      { \tl_set:Nn \l__elkernel_keyvalue_tl {#2} \use_none:nn }
+      { \__elkernel_arg_to_keyvalue_auxv:nn }
+  }
+\cs_new_protected:Npn \__elkernel_arg_to_keyvalue_auxv:nn #1#2
+  {
+    \__elkernel_arg_to_keyvalue_loop:w #2
+      \q__elkernel_recursion_tail \q__elkernel_recursion_stop {#1} {#2}
+  }
+\cs_new_protected:Npn \__elkernel_arg_to_keyvalue_loop:w #1 \q__elkernel_recursion_stop
+  {
+    \tl_if_head_is_N_type:nTF {#1}
+      { \__elkernel_arg_to_keyvalue_loop_N_type:N }
+      {
+        \tl_if_head_is_group:nTF {#1}
+          { \__elkernel_arg_to_keyvalue_loop_group:n }
+          { \__elkernel_arg_to_keyvalue_loop_space:w }
+      }
+        #1 \q__elkernel_recursion_stop
+  }
+\cs_new_protected:Npn \__elkernel_arg_to_keyvalue_loop_group:n #1
+  { \__elkernel_arg_to_keyvalue_loop:w }
+\use:n { \cs_new_protected:Npn \__elkernel_arg_to_keyvalue_loop_space:w } ~
+  { \__elkernel_arg_to_keyvalue_loop:w }
+\cs_new_protected:Npn \__elkernel_arg_to_keyvalue_loop_N_type:N #1
+  {
+    \__elkernel_if_recursion_tail_stop_do:Nn #1
+      { \__elkernel_arg_to_keyvalue_set_default:nn }
+    \str_if_eq:nnTF {#1} { = }
+      {
+        \__elkernel_use_i_delimit_by_q_recursion_stop:nw
+          { \__elkernel_arg_to_keyvalue_set_keyvalue:nn }
+      }
+      {
+        \bool_lazy_or:nnTF
+            { \token_if_math_toggle_p:N #1 }
+            { \str_if_eq_p:nn {#1} { \( } } % \)
+          { \__elkernel_arg_to_keyvalue_math:w }
+          { \__elkernel_arg_to_keyvalue_loop:w }
+      }
+  }
+\cs_new_protected:Npn \__elkernel_arg_to_keyvalue_math:w #1 \q__elkernel_recursion_stop
+  {
+    \tl_if_head_is_N_type:nTF {#1}
+      { \__elkernel_arg_to_keyvalue_math_N_type:N }
+      {
+        \tl_if_head_is_group:nTF {#1}
+          { \__elkernel_arg_to_keyvalue_math_group:n }
+          { \__elkernel_arg_to_keyvalue_math_space:w }
+      }
+        #1 \q__elkernel_recursion_stop
+  }
+\cs_new_protected:Npn \__elkernel_arg_to_keyvalue_math_N_type:N #1
+  {
+    \__elkernel_if_recursion_tail_stop_do:Nn #1
+      { \__elkernel_arg_to_keyvalue_set_default:nn }
+    \bool_lazy_or:nnTF
+        { \token_if_math_toggle_p:N #1 }
+        { \str_if_eq_p:nn {#1} { \) } }
+      { \__elkernel_arg_to_keyvalue_loop:w }
+      { \__elkernel_arg_to_keyvalue_math:w }
+  }
+\cs_new_protected:Npn \__elkernel_arg_to_keyvalue_math_group:n #1
+  { \__elkernel_arg_to_keyvalue_math:w }
+\use:n { \cs_new_protected:Npn \__elkernel_arg_to_keyvalue_math_space:w } ~
+  { \__elkernel_arg_to_keyvalue_math:w }
+\cs_new_protected:Npn \__elkernel_arg_to_keyvalue_set_default:nn #1#2
+  { \tl_set:Nn \l__elkernel_keyvalue_tl { #1 = {#2} } }
+\cs_new_protected:Npn \__elkernel_arg_to_keyvalue_set_keyvalue:nn #1#2
+  { \tl_set:Nn \l__elkernel_keyvalue_tl {#2} }
+\cs_new:Npn \__elkernel_split_N_head_apply:Nn #1#2
+  { \exp:w \if_false: { \fi: \__elkernel_split_N_head_apply_aux:NNw #1#2 } }
+\cs_new:Npn \__elkernel_split_N_head_apply_aux:NNw #1#2
+  {
+    \exp_after:wN \exp_end:
+    \exp_after:wN #1 \exp_after:wN #2 \exp_after:wN { \if_false: } \fi:
+  }
+
+\tl_new:N \l__elkernel_v_tl
+\tl_new:N \l__elkernel_v_action_tl
+\bool_new:N \l_elkernel_long_v_bool
+% full copy of \__cmd_grab_v_aux:w 
+\cs_new_protected:Npn \elkernel_collect_verb:Nnw #1#2
+  {
+    \tl_set:Nn \l__elkernel_v_action_tl 
+      { \group_align_safe_end: \tl_set_eq:NN #1 \l__elkernel_v_tl #2 }
+    \group_align_safe_begin:
+    \group_begin:
+      \tex_escapechar:D = 92 \scan_stop:
+      \tex_endlinechar:D = `\^^M \scan_stop:
+      \tl_clear:N \l__elkernel_v_tl
+      \peek_remove_spaces:n
+        {
+          \peek_meaning_remove:NTF \c_group_begin_token
+            { \__elkernel_grab_v_bgroup: }
+            {
+              \peek_N_type:TF
+                { \__elkernel_grab_v_aux_test:N }
+                { \__elkernel_grab_v_aux_abort:n { } }
+            }
+        }
+  }
+\cs_new_protected:Npn \__elkernel_grab_v_group_end:
+  {
+      \exp_args:NNNo
+    \group_end:
+    \tl_set:Nn \l__elkernel_v_tl { \l__elkernel_v_tl }
+  }
+\cs_new_protected:Npn \__elkernel_grab_v_aux_test:N #1
+  {
+    \__elkernel_grab_v_token_if_char:NTF #1
+      {
+        \__elkernel_grab_v_aux_put:N #1
+        \__elkernel_grab_v_aux_catcodes:
+        \__elkernel_grab_v_aux_loop:N #1
+      }
+      { \__elkernel_grab_v_aux_abort:n {#1} #1 }
+  }
+\cs_new_protected:Npn \__elkernel_grab_v_aux_loop:N #1
+  {
+    \peek_N_type:TF
+      { \__elkernel_grab_v_aux_loop:NN #1 }
+      { \__elkernel_grab_v_aux_abort:n { } }
+  }
+\cs_new_protected:Npn \__elkernel_grab_v_aux_loop:NN #1#2
+  {
+    \__elkernel_grab_v_token_if_char:NTF #2
+      {
+        \token_if_eq_charcode:NNTF #1 #2
+          { \__elkernel_grab_v_aux_loop_end: }
+          {
+            \__elkernel_grab_v_aux_put:N #2
+            \__elkernel_grab_v_aux_loop:N #1
+          }
+      }
+      { \__elkernel_grab_v_aux_abort:n {#2} #2 }
+  }
+\cs_new_protected:Npn \__elkernel_grab_v_aux_loop_end:
+  {
+    \__elkernel_grab_v_group_end:
+    \tl_set:Nx \l__elkernel_v_tl { \tl_tail:N \l__elkernel_v_tl }
+    \l__elkernel_v_action_tl
+  }
+\int_new:N \l__elkernel_v_nesting_int
+\cs_new_protected:Npx \__elkernel_grab_v_bgroup:
+  {
+    \exp_not:N \__elkernel_grab_v_aux_catcodes:
+    \exp_not:n { \int_set:Nn \l__elkernel_v_nesting_int { 1 } }
+    \exp_not:N \__elkernel_grab_v_aux_put:N \iow_char:N \{ % \}
+    \exp_not:N \__elkernel_grab_v_bgroup_loop:
+  }
+\cs_new_protected:Npn \__elkernel_grab_v_bgroup_loop:
+  {
+    \peek_N_type:TF
+      { \__elkernel_grab_v_bgroup_loop:N }
+      { \__elkernel_grab_v_aux_abort:n { } }
+  }
+\cs_new_protected:Npn \__elkernel_grab_v_bgroup_loop:N #1
+  {
+    \__elkernel_grab_v_token_if_char:NTF #1
+      {
+        \token_if_eq_charcode:NNTF \c_group_end_token #1
+          {
+            \int_decr:N \l__elkernel_v_nesting_int
+            \int_compare:nNnTF \l__elkernel_v_nesting_int > 0
+              {
+                \__elkernel_grab_v_aux_put:N #1
+                \__elkernel_grab_v_bgroup_loop:
+              }
+              { \__elkernel_grab_v_aux_loop_end: }
+          }
+          {
+            \token_if_eq_charcode:NNT \c_group_begin_token #1
+              { \int_incr:N \l__elkernel_v_nesting_int }
+            \__elkernel_grab_v_aux_put:N #1
+            \__elkernel_grab_v_bgroup_loop:
+          }
+      }
+      { \__elkernel_grab_v_aux_abort:n {#1} #1 }
+  }
+\cs_new_protected:Npn \__elkernel_grab_v_aux_catcodes:
+  {
+    \cs_set_eq:NN \do \char_set_catcode_other:N
+    \dospecials
+    \bool_if:NTF \l_elkernel_long_v_bool
+      { \char_set_catcode_other:n { \tex_endlinechar:D } }
+      { \char_set_catcode_parameter:n { \tex_endlinechar:D } }
+  }
+\cs_new_protected:Npn \__elkernel_grab_v_aux_abort:n #1
+  {
+    \__elkernel_grab_v_group_end:
+    \exp_after:wN \exp_after:wN \exp_after:wN
+      \peek_meaning_remove:NTF \char_generate:nn { \tex_endlinechar:D } { 6 }
+      {
+        \msg_error:nnxx { elkernel } { verbatim-nl }
+          { \tl_to_str:N \l__elkernel_v_tl }
+          { \tl_to_str:n {#1} }
+        \tl_set:Nn \l__elkernel_v_tl { \q_no_value }
+        \l__elkernel_v_action_tl
+      }
+      {
+        \msg_error:nnxx { elkernel } { verbatim-tokenized }
+          { \tl_to_str:N \l__elkernel_v_tl }
+          { \tl_to_str:n {#1} }
+        \tl_set:Nn \l__elkernel_v_tl { \q_no_value }
+        \l__elkernel_v_action_tl
+      }
+  }
+\cs_new_protected:Npn \__elkernel_grab_v_aux_put:N #1
+  {
+    \tl_put_right:Nx \l__elkernel_v_tl
+      {
+        \token_if_active:NTF #1
+          { \exp_not:N #1 } { \token_to_str:N #1 }
+      }
+  }
+\cs_new_protected:Npn \__elkernel_grab_v_token_if_char:NTF #1
+  { \str_if_eq:eeTF { } { \str_tail:n {#1} } }
+\msg_new:nnnn { elkernel } { verbatim-nl }
+  { Verbatim-like~#1~ended~by~end~of~line. }
+  {
+    The~verbatim~argument~cannot~contain~more~than~one~line,~
+    but~the~end~
+    of~the~current~line~has~been~reached.~You~may~have~forgotten~the~
+    closing~delimiter.
+    \\ \\
+    LaTeX~will~ignore~'#1'~and~you~may~get~some~additional~
+    (low-level)~errors.
+  }
+\msg_new:nnnn { elkernel } { verbatim-tokenized }
+  { Verbatim-like~illegal~in~argument. }
+  {
+    The~code~takes~a~verbatim~argument~and~should~therefore~normally~
+    not~be~used~in~arguments~of~other~commands~or~environments.~
+    LaTeX~found~an~illegal~token~ \tl_if_empty:nF {#2} { (#2)~ }
+    after~'#1'~and~will~drop~everything~up~to~this~point.
+    \\ \\
+    Expect~further~(low-level)~errors.
+  }

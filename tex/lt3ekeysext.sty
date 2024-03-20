@@ -1,0 +1,1408 @@
+% lt3ekeyscmd.sty 
+% Copyright 2023, 2024 Wenjian Chern.
+%
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3c
+% of this license or any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3c or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+%
+% This work has the LPPL maintenance status `maintained'.
+% 
+% The Current Maintainer of this work is Wenjian Chern.
+%
+% This work consists of the files lt3ekeys.sty, lt3ekeyscmd.sty,
+% lt3ekeysext.sty, lt3ekeys-elkernel.sty, lt3ekeys-collectn.sty,
+% lt3ekeys.tex and lt3ekeys-usrguide-cn.tex.
+%
+\NeedsTeXFormat{LaTeX2e}[2023/06/01]
+\ProvidesExplPackage{lt3ekeysext}{2024/03/18}{v0.2}{entensions of lt3ekeys}
+\RequirePackage{lt3ekeyscmd}
+
+\bool_new:N \l__ekeys_cmd_nested_bool
+\bool_new:N \l__ekeys_cmd_built_bool
+\bool_new:N \l__ekeys_cmd_raw_bool
+
+\cs_gset:Npn \__ekeys_cmd_chk_args_m:
+  {
+    \bool_if:NT \l__ekeys_cmd_raw_bool
+      { \__ekeys_cmd_bad_prefix:Nx & \l__ekeys_cmd_type_tl }
+    \bool_if:NT \l__ekeys_cmd_built_bool
+      { \__ekeys_cmd_bad_prefix:Nx ## \l__ekeys_cmd_type_tl }
+  }
+\cs_gset:Npn \__ekeys_cmd_chk_args_R:
+  {
+    \bool_if:NT \l__ekeys_cmd_built_bool
+      { \__ekeys_cmd_bad_prefix:Nx ## \l__ekeys_cmd_type_tl }
+  }
+\cs_gset:Npn \__ekeys_cmd_chk_args_D:
+  {
+    \bool_if:NT \l__ekeys_cmd_built_bool
+      { \__ekeys_cmd_bad_prefix:Nx ## \l__ekeys_cmd_type_tl }
+  }
+\cs_gset:Npn \__ekeys_cmd_chk_args_G:
+  {
+    \bool_if:NT \l__ekeys_cmd_built_bool
+      { \__ekeys_cmd_bad_prefix:Nx ## \l__ekeys_cmd_type_tl }
+  }
+\cs_gset:Npn \__ekeys_cmd_chk_args_U:
+  {
+    \bool_if:NT \l__ekeys_cmd_raw_bool
+      { \__ekeys_cmd_bad_prefix:Nx & \l__ekeys_cmd_type_tl }
+  }
+\cs_gset:Npn \__ekeys_cmd_chk_args_t:
+  {
+    \bool_if:NT \l__ekeys_cmd_built_bool
+      { \__ekeys_cmd_bad_prefix:Nx ## \l__ekeys_cmd_type_tl }
+  }
+\cs_gset:Npn \__ekeys_cmd_chk_args_T:
+  { 
+    \bool_if:NT \l__ekeys_cmd_raw_bool
+      { \bool_set_true:N \l__ekeys_cmd_built_bool }
+  }
+\cs_gset:Npn \__ekeys_cmd_chk_args_W:
+  { 
+    \bool_if:NT \l__ekeys_cmd_raw_bool
+      { \bool_set_true:N \l__ekeys_cmd_built_bool }
+  }
+\cs_gset:cpn { __ekeys_cmd_chk_args_?: }
+  {
+    \bool_if:NT \l__ekeys_cmd_raw_bool
+      { \__ekeys_cmd_bad_prefix:Nx & \l__ekeys_cmd_type_tl }
+    \bool_if:NT \l__ekeys_cmd_nested_bool
+      { \__ekeys_cmd_bad_prefix:Nx @ \l__ekeys_cmd_type_tl }
+    \bool_if:NT \l__ekeys_cmd_built_bool
+      { \__ekeys_cmd_bad_prefix:Nx ## \l__ekeys_cmd_type_tl }
+  }
+
+\cs_gset_protected:cpn { __ekeys_cmd_type_@:w }
+  { 
+    \bool_set_true:N \l__ekeys_cmd_nested_bool 
+    \__ekeys_cmd_add_type:N 
+  }
+\cs_gset_protected:cpn { __ekeys_cmd_type_#:w }
+  {
+    \bool_set_true:N \l__ekeys_cmd_built_bool
+    \__ekeys_cmd_add_type:N 
+  }
+\cs_gset_eq:cc { __ekeys_cmd_type_##:w } { __ekeys_cmd_type_#:w }
+\cs_gset_protected:cpn { __ekeys_cmd_type_&:w }
+  {
+    \bool_set_true:N \l__ekeys_cmd_raw_bool
+    \__ekeys_cmd_add_type:N 
+  }
+\cs_gset_protected:Npn \__ekeys_cmd_type_m:w 
+  {
+    \__ekeys_cmd_chk_args:NN m m 
+    \int_incr:N \l__ekeys_cmd_m_args_int
+    \__ekeys_cmd_grab_DEFAULT:
+    \__ekeys_cmd_add_type:N
+  }
+\cs_gset_protected:Npn \__ekeys_cmd_type_p:w #1
+  {
+    \__ekeys_cmd_chk_args:NN P p 
+    \__ekeys_cmd_chk_arg:nnn {#1} { p } { 1 }
+    \__ekeys_cmd_chk_extra:nnn { blank } { p } {#1}
+    \tl_map_function:nN {#1} \__ekeys_cmd_chk_token:n 
+    \__ekeys_cmd_chk_unique:w #1 \q__ekeys_mark \q__ekeys_stop { \exp_not:n {#1} }
+    \__ekeys_cmd_flush_m_args:
+    \__ekeys_cmd_add_grab:x 
+      { 
+        \bool_if:NTF \l__ekeys_cmd_raw_bool
+          {
+            \__ekeys_cmd_grab_P:nnww 
+              { \tl_map_function:nN {#1} \__ekeys_exp_not_unbraced:n }
+              { \tl_map_function:nN { {}#1 } \__ekeys_exp_not_braced:n }
+          }
+          {
+            \__ekeys_cmd_grab_p:nww 
+              { \tl_map_function:nN {#1} \__ekeys_exp_not_unbraced:n } 
+          }
+      }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_type_K:w #1
+  {
+    \__ekeys_cmd_chk_arg:nnn {#1} { k } { 1 }
+    \__ekeys_cmd_chk_extra:nnn { blank } { k } {#1}
+    \__ekeys_cmd_flush_m_args:
+    \tl_set:NV \l__ekeys_cmd_tmpn_tl \l__ekeys_cmd_arg_int
+    \tl_trim_spaces_apply:nN {#1} \__ekeys_cmd_type_K_aux:n
+    \int_decr:N \l__ekeys_cmd_arg_int
+    \__ekeys_cmd_chk_args:NN K K
+    \__ekeys_cmd_add_grab:x 
+      { \__ekeys_cmd_grab_K:nnww { \l__ekeys_cmd_tmpn_tl } { \l__ekeys_cmd_scanner_tl } }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_type_K_break:n #1 #2 \__ekeys_cmd_add_grab:x #3
+  { #2 \__ekeys_cmd_add_type:N #1 }
+\cs_new_protected:Npn \__ekeys_cmd_type_K_break:nn #1 #2 #3 \__ekeys_cmd_add_grab:x #4
+  { #3 #1 {#2} }
+\tl_new:N \l__ekeys_cmd_scanner_tl
+\tl_new:N \l__ekeys_cmd_scanner_name_tl
+\tl_new:N \l__ekeys_cmd_scanner_args_tl
+\cs_new_protected:Npn \__ekeys_cmd_type_K_aux:n #1
+  {
+    \tl_if_head_is_group:nTF {#1}
+      {
+        \tl_set:No \l__ekeys_cmd_scanner_name_tl { \tl_head:w #1 \q_stop }
+        \tl_set:Nx \l__ekeys_cmd_scanner_args_tl
+          { \exp_args:Ne \tl_tail:n { \tl_trim_spaces:n {#1} } }
+      }
+      {
+        \exp_last_unbraced:Nf \__ekeys_cmd_type_K_auxii:w { \use:n #1 } 
+          { \q__ekeys_mark } \q__ekeys_stop
+      }
+    \cs_if_exist:cTF { ekeys-cmd/type-K/define-\l__ekeys_cmd_scanner_name_tl :w }
+      { 
+        \cs:w ekeys-cmd/type-K/define-\l__ekeys_cmd_scanner_name_tl :w 
+          \exp_last_unbraced:Ne \cs_end: 
+          { 
+            { \l__ekeys_cmd_str }
+            { \exp_not:o \l__ekeys_cmd_scanner_args_tl }
+            { \l__ekeys_cmd_tmpn_tl }
+            { \bool_if:NTF \l__ekeys_cmd_raw_bool \c_true_bool \c_false_bool }
+            { \bool_if:NTF \l__ekeys_cmd_nested_bool \c_true_bool \c_false_bool }
+          }
+      }
+      { 
+        \msg_error:nnxx { ekeys } { cmd-unknown-scanner } 
+          { \c_backslash_str \l__ekeys_cmd_str } { \exp_not:n {#1} } 
+        \__ekeys_break:
+      }
+  }
+\cs_new:Npn \__ekeys_cmd_type_K_auxii:w #1#
+  {
+    \tl_set:Nx \l__ekeys_cmd_scanner_name_tl { \tl_trim_spaces:n {#1} }
+    \__ekeys_cmd_type_K_auxiii:w 
+  }
+\cs_new:Npn \__ekeys_cmd_type_K_auxiii:w #1 \q__ekeys_stop
+  {
+    \exp_args:No \__ekeys_quark_if_mark:nTF { \tl_head:w #1 \q_stop }
+      { \tl_set:Nn \l__ekeys_cmd_scanner_args_tl { } }
+      {
+        \tl_set:Nx \l__ekeys_cmd_scanner_args_tl
+          { \tl_range:nnn {#1} { 1 } { -2 } }
+      }
+  }
+\cs_new_protected:cpn { __ekeys_cmd_type_?:w } #1
+  {
+    \int_decr:N \l__ekeys_cmd_arg_int
+    \__ekeys_cmd_chk_args:NN ? ?
+    \__ekeys_cmd_chk_arg:nnn {#1} { ? } { 1 }
+    \__ekeys_cmd_add_grab:x 
+      { \use:c { __ekeys_cmd_grab_?:nw } { \exp_not:n {#1} } }
+  }
+\tl_new:N \l__ekeys_cmd_register_tl
+\int_new:N \l__ekeys_cmd_register_type_int
+\cs_new_protected:Npn \__ekeys_cmd_type_c:w #1
+  {
+    \__ekeys_cmd_chk_args:NN C c 
+    \__ekeys_cmd_chk_arg:nnn {#1} { c } { 1 }
+    \__ekeys_cmd_chk_extra:nnn { blank } { c } {#1}
+    \int_gincr:N \g__ekeys_cmd_argid_int
+    \exp_args:Nee \__ekeys_cmd_type_c_aux:nnn 
+      { \tl_head:n {#1} } { \tl_tail:n {#1} } {#1}
+    \__ekeys_cmd_flush_m_args:
+    \__ekeys_cmd_add_grab:x 
+      { 
+        \__ekeys_cmd_grab_C:Nnww 
+        \exp_not:c { \__ekeys_cmd_arg_n: } 
+        { \exp_not:o \l__ekeys_cmd_tmp_tl }
+      }
+  }
+\cs_new:Npn \__ekeys_cmd_type_c_aux:nnn #1#2 #3
+  {
+    \tl_if_empty:nTF {#2}
+      { \cs_if_exist_use:cTF { __ekeys_cmd_type_c_#1: } }
+      {
+        \cs_if_exist_use:cTF { __ekeys_cmd_type_c_#1:n } 
+          { {#2} \use_i:nn } { \use_ii:nn }
+      }
+        { }
+        {
+          \int_set:Nn \l__ekeys_cmd_register_type_int { -1 }
+          \msg_error:nnxx { ekeys } { unknown-c-register }
+            { \c_backslash_str \l__ekeys_cmd_str } { \tl_to_str:n {#3} }
+          \__ekeys_break:
+        }
+  }
+\cs_new:Npn \__ekeys_cmd_type_c_auxii:nN #1#2
+  {
+    \int_set:Nn \l__ekeys_cmd_register_type_int {#1}
+    \exp_args:Nc #2 { \__ekeys_cmd_register_n: }
+    \tl_set:Nx \l__ekeys_cmd_register_tl 
+      { \use:c { \__ekeys_cmd_register_n: } }
+    \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str { \l__ekeys_cmd_register_tl }
+    \cs_if_exist_use:cF 
+      { __ekeys_cmd_type_C_ \int_use:N \l__ekeys_cmd_register_type_int :w }
+      { \__ekeys_cmd_bad_arg:n { c } }
+  }
+\cs_new:Npn \__ekeys_cmd_type_c_b: { \__ekeys_cmd_type_c_auxii:nN 1 \box_new:N { } }
+\cs_new:Npn \__ekeys_cmd_type_c_i: { \__ekeys_cmd_type_c_auxii:nN 0 \int_new:N }
+\cs_new:Npn \__ekeys_cmd_type_c_d: { \__ekeys_cmd_type_c_auxii:nN 0 \dim_new:N }
+\cs_new:Npn \__ekeys_cmd_type_c_s: { \__ekeys_cmd_type_c_auxii:nN 0 \skip_new:N }
+\cs_new:Npn \__ekeys_cmd_type_c_m: { \__ekeys_cmd_type_c_auxii:nN 0 \muskip_new:N }
+\cs_new:Npn \__ekeys_cmd_type_c_t: { \__ekeys_cmd_type_c_auxii:nN 0 \__ekeys_toks_new:N }
+\cs_new:Npn \__ekeys_cmd_type_c_b:n { \__ekeys_cmd_type_c_auxii:nN 1 \box_new:N }
+\cs_new:Npn \__ekeys_cmd_type_c_w:n { \__ekeys_cmd_type_c_auxii:nN 2 \box_new:N }
+\cs_new:Npn \__ekeys_cmd_type_c_v:n { \__ekeys_cmd_type_c_auxii:nN 3 \box_new:N }
+\cs_new_protected:Npn \__ekeys_cmd_type_C:w #1
+  {
+    \__ekeys_cmd_chk_args:NN C C 
+    \__ekeys_cmd_chk_arg:nnn {#1} { C } { 1 }
+    \__ekeys_cmd_chk_extra:nnn { blank } { C } {#1}
+    \int_gincr:N \g__ekeys_cmd_argid_int
+    \tl_trim_spaces_apply:nN {#1} \__ekeys_cmd_type_C_aux:n
+    \__ekeys_cmd_flush_m_args:
+    \__ekeys_cmd_add_grab:x 
+      { 
+        \__ekeys_cmd_grab_C:Nnww 
+          \exp_not:c \__ekeys_cmd_arg_n: 
+          { \exp_not:o \l__ekeys_cmd_tmp_tl } 
+      }
+  }
+\cs_new:Npn \__ekeys_cmd_type_C_aux:n #1
+  {
+    \tl_set:Nn \l__ekeys_cmd_error_tl 
+      {
+        \int_set:Nn \l__ekeys_cmd_register_type_int { -1 }
+        \__ekeys_cmd_bad_arg:n { c{#1} }
+      }
+    \tl_if_single_token:nTF {#1}
+      { \__ekeys_cmd_type_C_auxii:n {#1} }
+      {
+        \tl_if_head_eq_catcode:nNTF {#1} \scan_stop:
+          {
+            \exp_args:Nee \__ekeys_cmd_type_C_auxiii:nnn
+              { \tl_head:n {#1} } { \tl_tail:n {#1} } {#1}
+          }
+          { \__ekeys_cmd_type_C_auxvii:n {#1} }
+      }
+  }
+\cs_new:Npn \__ekeys_cmd_type_C_auxii:n #1
+  {
+    \bool_case:nTF
+      {
+        { \token_if_chardef_p:N #1 } 
+          { \int_set:Nn \l__ekeys_cmd_register_type_int 1 }
+        { \token_if_mathchardef_p:N #1 }
+          { \int_set:Nn \l__ekeys_cmd_register_type_int 1 }
+        { \token_if_int_register_p:N #1 }
+          { \int_set:Nn \l__ekeys_cmd_register_type_int 0 }
+        { \token_if_dim_register_p:N #1 }
+          { \int_set:Nn \l__ekeys_cmd_register_type_int 0 }
+        { \token_if_skip_register_p:N #1 }
+          { \int_set:Nn \l__ekeys_cmd_register_type_int 0 }
+        { \token_if_muskip_register_p:N #1 }
+          { \int_set:Nn \l__ekeys_cmd_register_type_int 0 }
+        { \token_if_toks_register_p:N #1 }
+          { \int_set:Nn \l__ekeys_cmd_register_type_int 0 }
+      }
+      {
+        \cs_set_eq:cN { \__ekeys_cmd_register_n: } #1
+        \tl_set:Nx \l__ekeys_cmd_register_tl 
+          { \use:c { \__ekeys_cmd_register_n: } }
+        \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str { \l__ekeys_cmd_register_tl }
+        \cs_if_exist_use:cF 
+          { __ekeys_cmd_type_C_ \int_use:N \l__ekeys_cmd_register_type_int :w }
+          { \l__ekeys_cmd_error_tl }
+      }
+      { \l__ekeys_cmd_error_tl }
+  }
+\cs_new:Npn \__ekeys_cmd_type_C_auxiii:nnn #1#2 #3
+  {
+    \bool_lazy_or:nnTF
+      { \token_if_chardef_p:N #1 } { \token_if_mathchardef_p:N #1 }
+      {
+        \cs_set_eq:cN { \__ekeys_cmd_register_n: } #1
+        \tl_set:Nx \l__ekeys_cmd_register_tl 
+          { \use:c { \__ekeys_cmd_register_n: } }
+        \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str { \l__ekeys_cmd_register_tl }
+        \exp_args:Nee \__ekeys_cmd_type_C_auxiv:nn
+          { \tl_head:n {#2} } { \tl_tail:n {#2} }
+      }
+      { \__ekeys_cmd_type_C_auxvii:n {#3} }
+  }
+\cs_new:Npn \__ekeys_cmd_type_C_auxiv:nn #1#2
+  {
+    \tl_if_empty:nTF {#2}
+      { \cs_if_exist_use:cF { __ekeys_cmd_type_C_#1: } { \l__ekeys_cmd_error_tl } }
+      {
+        \cs_if_exist_use:cTF { __ekeys_cmd_type_C_#1:n } 
+          { {#2} } { \l__ekeys_cmd_error_tl } 
+      }
+  }
+\cs_new:Npn \__ekeys_cmd_type_C_auxv:w #1 \s__ekeys_stop
+  {
+    \exp_args:Nee \__ekeys_cmd_type_C_auxiv:nn
+      { \tl_head:N {#1} } { \tl_tail:N {#1} }
+  }
+\cs_new:Npn \__ekeys_cmd_type_C_auxvi:nN #1#2
+  {
+    \int_set:Nn \l__ekeys_cmd_register_type_int {#1}
+    \quark_if_no_value:NT \l__ekeys_cmd_register_tl
+      { \exp_args:Nc #2 { \__ekeys_cmd_register_n: } \l__ekeys_cmd_tmp_int }
+    \tl_set:Nx \l__ekeys_cmd_register_tl { \use:c { \__ekeys_cmd_register_n: } }
+    \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str { \l__ekeys_cmd_register_tl }
+    \cs_if_exist_use:cF 
+      { __ekeys_cmd_type_C_ \int_use:N \l__ekeys_cmd_register_type_int :w }
+      { \__ekeys_cmd_bad_arg:n { c } }
+  }
+\cs_new:Npn \__ekeys_cmd_type_C_auxvii:n #1
+  {
+    \__ekeys_if_digit:nTF {#1}
+      {
+        \tl_set_eq:NN \l__ekeys_cmd_register_tl \q_no_value
+        \collectn_value:Nnw \l__ekeys_cmd_tmp_int
+          { \__ekeys_cmd_type_C_auxv:w \prg_do_nothing: } #1 \s__ekeys_stop 
+      }
+      { \exp_args:Nf \__ekeys_cmd_type_C_auxii:n { \tl_head:f {#1} } }
+  }
+\cs_new:Npn \__ekeys_cmd_type_C_b: { \__ekeys_cmd_type_C_auxvi:nN 1 \e@alloc@chardef {}}
+\cs_new:Npn \__ekeys_cmd_type_C_i: { \__ekeys_cmd_type_C_auxvi:nN 0 \tex_countdef:D }
+\cs_new:Npn \__ekeys_cmd_type_C_d: { \__ekeys_cmd_type_C_auxvi:nN 0 \tex_dimendef:D }
+\cs_new:Npn \__ekeys_cmd_type_C_s: { \__ekeys_cmd_type_C_auxvi:nN 0 \tex_skipdef:D }
+\cs_new:Npn \__ekeys_cmd_type_C_m: { \__ekeys_cmd_type_C_auxvi:nN 0 \tex_muskipdef:D }
+\cs_new:Npn \__ekeys_cmd_type_C_t: { \__ekeys_cmd_type_C_auxvi:nN 0 \tex_toksdef:D }
+\cs_new:Npn \__ekeys_cmd_type_C_b:n { \__ekeys_cmd_type_C_auxvi:nN 1 \e@alloc@chardef }
+\cs_new:Npn \__ekeys_cmd_type_C_w:n { \__ekeys_cmd_type_C_auxvi:nN 2 \e@alloc@chardef }
+\cs_new:Npn \__ekeys_cmd_type_C_v:n { \__ekeys_cmd_type_C_auxvi:nN 3 \e@alloc@chardef }
+\cs_new:cpn { __ekeys_cmd_type_C_0:w }
+  {
+    \cs_set_protected:cpx \__ekeys_cmd_arg_n: ##1 ##2
+      {
+        \__ekeys_cmd_collect_value:NNnnn \l__ekeys_cmd_register_tl \collectn_value:Nnw
+          {##2} 
+          { \__ekeys_cmd_collect_default:nnn { \exp_not:n { \use:nn \exp_stop_f: } } { } }
+          {##1}
+      }
+    \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str { \use:c \__ekeys_cmd_arg_n: }
+    \tl_set:Nn \l__ekeys_cmd_tmp_tl { }
+  }
+\cs_new:cpn { __ekeys_cmd_type_C_1:w } #1
+  {
+    \cs_set_protected:cpx \__ekeys_cmd_arg_n: ##1 ##2
+      {
+        \__ekeys_cmd_collect_value:NNnnn
+          \l__ekeys_cmd_register_tl \collectn_hbox_auto:Nnnw 
+          {##2} 
+          { \__ekeys_cmd_collect_default:nnn { \exp_not:N \exp_stop_f: } { } } 
+          {##1}
+      }
+    \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str { \use:c \__ekeys_cmd_arg_n: }
+    \tl_set:Nn \l__ekeys_cmd_tmp_tl {#1}
+  }
+\cs_new:cpn { __ekeys_cmd_type_C_2:w } #1
+  {
+    \cs_set_protected:cpx \__ekeys_cmd_arg_n: ##1 ##2
+      {
+        \__ekeys_cmd_collect_value:NNnnn 
+          \l__ekeys_cmd_register_tl \collectn_width_auto:Nnnw 
+          {##2}
+          { \__ekeys_cmd_collect_default:nnn { \exp_not:N \exp_stop_f: } { {\linewidth} } }
+          {##1}
+      }
+    \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str { \use:c \__ekeys_cmd_arg_n: }
+    \tl_set:Nn \l__ekeys_cmd_tmp_tl {#1}
+  }
+\cs_new:cpn { __ekeys_cmd_type_C_3:w } #1
+  {
+    \cs_set_protected:cpx \__ekeys_cmd_arg_n: ##1 ##2
+      {
+        \__ekeys_cmd_collect_value:NNnnn 
+          \l__ekeys_cmd_register_tl \collectn_varwidth_auto:Nnnw 
+          {##2}
+          { \__ekeys_cmd_collect_default:nnn { \exp_not:N \exp_stop_f: } { {\linewidth} } } 
+          {##1}
+      }
+    \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str { \use:c \__ekeys_cmd_arg_n: }
+    \tl_set:Nn \l__ekeys_cmd_tmp_tl {#1}
+  }
+\cs_new_protected:Npn \__ekeys_cmd_collect_default:nnn #1 #2 { #1 }
+\msg_new:nnn { ekeys } { cmd-invalid-arg-ref }
+  { Invalid~argument~reference~when~executes~#1. }
+\tl_new:N \l__ekeys_cmd_collect_arg_tl
+% register, collect func, signature, action for arg, arg 
+\cs_new_protected:Npn \__ekeys_cmd_collect_value:NNnnn #1#2#3 #4#5
+  {
+    \__ekeys_cmd_maybe_ref_arg:Nn \l__ekeys_cmd_collect_arg_tl {#5}
+    \tl_set:Nf \l__ekeys_cmd_collect_arg_tl 
+      { \exp_args:Nno \use:n {#4} \l__ekeys_cmd_collect_arg_tl }
+    \use:e 
+      {
+        \exp_not:N #2 \exp_not:N #1 
+          { \__ekeys_cmd_add_arg:n \exp_not:n { #1 #3 } \__ekeys_cmd_run_code: }
+        \l__ekeys_cmd_collect_arg_tl
+      }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_maybe_ref_arg:Nn { \tl_set:Nf }
+
+\cs_gset_protected:Npn \__ekeys_cmd_add_grab:n #1
+  {
+    \tl_set:Nn \l__ekeys_cmd_tmp_tl {#1}
+    \exp_args:Nee \__ekeys_cmd_add_grab_aux:Nn 
+      { \tl_head:N \l__ekeys_cmd_tmp_tl }
+      { \tl_tail:N \l__ekeys_cmd_tmp_tl }
+  }
+\cs_gset_protected:Npn \__ekeys_cmd_add_grab:x #1
+  {
+    \tl_set:Nx \l__ekeys_cmd_tmp_tl {#1}
+    \exp_args:Nee \__ekeys_cmd_add_grab_aux:Nn 
+      { \tl_head:N \l__ekeys_cmd_tmp_tl }
+      { \tl_tail:N \l__ekeys_cmd_tmp_tl }
+  }
+\cs_new:Npn \__ekeys_cmd_add_grab_aux:Nn #1#2
+  {
+    \exp_last_unbraced:Ne \__ekeys_cmd_add_grab_aux:nnn { \cs_split_function:N #1 }
+    \tl_put_right:No \l__ekeys_cmd_grab_tl { \l__ekeys_cmd_tmp_tl #2 }
+    \__ekeys_cmd_grab_DEFAULT:
+    \__ekeys_cmd_add_type:N 
+  }
+\cs_new:Npn \__ekeys_cmd_add_grab_aux:nnn #1#2#3 
+  {
+    \cs_if_exist:cT { #1 _do : w }
+      { \exp_last_unbraced:Nco \use_i:nn { #1 _do : w } \l__ekeys_cmd_tmp_tl }
+    \use:n
+      {
+        \elkernel_tl_set:Nx \l__ekeys_cmd_tmp_tl { #1 }
+        \bool_lazy_and:nnT
+          { \bool_if_p:N \l__ekeys_cmd_nested_bool }
+          { \cs_if_exist_p:c { \l__ekeys_cmd_tmp_tl _nested : #2 } }
+          { \elkernel_tl_set:Nx \l__ekeys_cmd_tmp_tl { \l__ekeys_cmd_tmp_tl _nested } }
+        \bool_lazy_and:nnT
+          { \bool_if_p:N \l__ekeys_cmd_built_bool }
+          { \cs_if_exist_p:c { \l__ekeys_cmd_tmp_tl _built : #2 } }
+          { \elkernel_tl_set:Nx \l__ekeys_cmd_tmp_tl { \l__ekeys_cmd_tmp_tl _built } }
+        \bool_lazy_and:nnT
+          { \bool_if_p:N \l__ekeys_cmd_raw_bool }
+          { \cs_if_exist_p:c { \l__ekeys_cmd_tmp_tl _raw : #2 } }
+          { \elkernel_tl_set:Nx \l__ekeys_cmd_tmp_tl { \l__ekeys_cmd_tmp_tl _raw } }
+        \tl_set:Nx \l__ekeys_cmd_tmp_tl { \use:c { \l__ekeys_cmd_tmp_tl : #2 } }
+      }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_DEFAULT:
+  {
+    \bool_set_false:N \l__ekeys_cmd_nested_bool
+    \bool_set_false:N \l__ekeys_cmd_built_bool
+    \bool_set_false:N \l__ekeys_cmd_raw_bool
+  }
+
+\cs_new_protected:Npn \__ekeys_cmd_grab_R_raw:NNnww #1#2#3 #4 \__ekeys_cmd_run_code: 
+  {
+    \tl_set:Nn \l__ekeys_cmd_signature_tl {#4}
+    \__ekeys_peek_nonspace:NTF #1
+      { \__ekeys_cmd_grab_D_raw_aux:NN #1#2 }
+      { \__ekeys_cmd_grab_R_aux:NNn #1 #2 { \exp_not:o {#3} } }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_R_nested:NNnww #1#2#3 #4 \__ekeys_cmd_run_code: 
+  {
+    \tl_set:Nn \l__ekeys_cmd_signature_tl {#4}
+    \__ekeys_peek_nonspace:NTF #1
+      { \__ekeys_cmd_grab_D_nested_aux:NN #1#2 }
+      { \__ekeys_cmd_grab_R_aux:NNn #1 #2 {#3} }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_R_nested_raw:NNnww 
+  #1#2#3 #4 \__ekeys_cmd_run_code: 
+  {
+    \tl_set:Nn \l__ekeys_cmd_signature_tl {#4}
+    \__ekeys_peek_nonspace:NTF #1
+      { \__ekeys_cmd_grab_D_nested_raw_aux:NN #1#2 }
+      { 
+        \__ekeys_cmd_grab_R_aux:NNn #1 #2 
+          { \exp_not:N #1 \exp_not:o {#3} \exp_not:N #2 } 
+      }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_R_aux:NNn #1#2#3
+  {
+    \msg_error:nnxx { ekeys } { cmd-missing-required }
+      { \__ekeys_cmd_run_extract_cs_str: } 
+      { \token_to_str:N #1 }
+    \__ekeys_cmd_add_arg:e {#3} \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code:
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_D_raw:NNnww #1#2#3 #4 \__ekeys_cmd_run_code:
+  {
+    \tl_set:Nn \l__ekeys_cmd_signature_tl {#4}
+    \__ekeys_peek_nonspace:NTF #1
+      { \__ekeys_cmd_grab_D_raw_aux:NN #1#2 }
+      { 
+        \__ekeys_cmd_add_arg:e { \exp_not:o {#3} }
+        \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code: 
+      }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_D_nested:NNnww #1#2#3 #4 \__ekeys_cmd_run_code:
+  {
+    \tl_set:Nn \l__ekeys_cmd_signature_tl {#4}
+    \__ekeys_peek_nonspace:NTF #1
+      { \__ekeys_cmd_grab_D_nested_aux:NN #1#2 }
+      { \__ekeys_cmd_add_arg:o {#3} \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code: }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_D_nested_raw:NNnww 
+  #1#2#3 #4 \__ekeys_cmd_run_code:
+  {
+    \tl_set:Nn \l__ekeys_cmd_signature_tl {#4}
+    \__ekeys_peek_nonspace:NTF #1
+      { \__ekeys_cmd_grab_D_nested_raw_aux:NN #1#2 }
+      { 
+        \__ekeys_cmd_add_arg:e { \exp_not:N #1 { \exp_not:o {#3} } \exp_not:N #2 } 
+        \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code: 
+      }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_D_raw_aux:NN #1#2
+  {
+    \exp_after:wN \cs_set_protected:Npn \l__ekeys_cmd_fn_tl #1##1#2
+      { 
+        \__ekeys_cmd_add_arg:n { #1 {##1} #2 } 
+        \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code: 
+      }
+    \l__ekeys_cmd_fn_tl
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_D_nested_aux:NN #1#2
+  {
+    \__collectn_del_def:n 
+      { \__ekeys_cmd_add_arg:n {##1} \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code: }
+    \__collectn_del_aux:Nn #1#2
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_D_nested_raw_aux:NN #1#2
+  {
+    \__collectn_del_def:n 
+      { 
+        \__ekeys_cmd_add_arg:n { #1 {##1} #2 } 
+        \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code: 
+      }
+    \__collectn_del_aux:Nn #1#2
+  }
+
+\cs_new_protected:Npn \__ekeys_cmd_grab_t_raw:Nww #1#2 \__ekeys_cmd_run_code:
+  {
+    \tl_set:Nn \l__ekeys_cmd_signature_tl {#2}
+    \exp_after:wN \cs_set_protected:Npn \l__ekeys_cmd_fn_tl 
+      {
+        \__ekeys_peek_nonspace_remove:NTF #1
+          { 
+            \__ekeys_cmd_add_arg:n { #1 }
+            \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code:
+          }
+          { 
+            \__ekeys_cmd_add_arg:n { }
+            \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code:
+          }
+      }
+    \l__ekeys_cmd_fn_tl
+  }
+
+\cs_new_protected:Npn \__ekeys_cmd_grab_T_do:w #1#2
+  {
+    \bool_if:NT \l__ekeys_cmd_built_bool
+      {
+        \int_zero:N \l__ekeys_cmd_tmpa_int
+        \cs_set_protected:cpx { \__ekeys_cmd_arg_n: } ##1
+          {
+            \exp_not:N \cs_if_exist_use:cF 
+              { 
+                \__ekeys_cmd_arg_n: - 
+                \exp_not:N \tl_if_empty:nF {##1} { \exp_not:N \token_to_str:N ##1 }
+              }
+              { \exp_not:c { \__ekeys_cmd_arg_n: - } }
+            ##1
+          }
+        \cs_set_protected:cpn { \__ekeys_cmd_arg_n: - }
+          {
+            \__ekeys_cmd_add_arg:n { 0 } \__ekeys_cmd_add_arg:o {#2}
+            \exp_after:wN \l__ekeys_cmd_signature_tl 
+            \exp_after:wN \__ekeys_cmd_run_code:
+            \l__collectn_peeks_tl
+          }
+        \tl_put_right:Nx \l__ekeys_cmd_grab_tl
+          { \__ekeys_cmd_grab_T_built:nww \use:c { \__ekeys_cmd_arg_n: } }
+        \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str 
+          { \use:c { \__ekeys_cmd_arg_n: } \use:c { \__ekeys_cmd_arg_n: - } }
+        \__ekeys_cmd_grab_T_do_built:Nnw 
+          #1 \q__ekeys_mark \q__ekeys_mark \q__ekeys_stop 
+        \use_none:nnnnnnn
+      }
+    \use:n { \tl_set:Nn \l__ekeys_cmd_tmp_tl { \__ekeys_cmd_grab_T:nnww } }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_T_do_built:Nnw #1#2 #3 \q__ekeys_stop
+  {
+    \token_if_eq_meaning:NNF #1 \q__ekeys_mark
+      {
+        \int_incr:N \l__ekeys_cmd_tmpa_int
+        \bool_lazy_and:nnTF 
+          { \bool_if_p:N \l__ekeys_cmd_nested_bool }
+          { ! \tl_if_empty_p:n {#2} }
+          {
+            \cs_set_protected:cpx { \__ekeys_cmd_arg_n: - \token_to_str:N #1 } ##1
+              {
+                \exp_not:n { \token_if_eq_meaning:NNTF #1 } ##1
+                  {
+                    \__collectn_del_def:n 
+                      {
+                        \__ekeys_cmd_add_arg:n { \int_use:N \l__ekeys_cmd_tmpa_int }
+                        \bool_if:NTF \l__ekeys_cmd_raw_bool
+                          { 
+                            \__ekeys_cmd_add_arg:e 
+                              { 
+                                \exp_not:n { \exp_not:N #1 }
+                                { \exp_not:N \exp_not:o {####1} }
+                                \__ekeys_wise_exp_notii:n {#2}
+                              }
+                          }
+                          { \__ekeys_cmd_add_arg:n {####1} }
+                        \exp_not:n { \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code: }
+                      }
+                    \exp_not:n { \__collectn_del_aux:Nn #1 {#2} } ##1
+                  }
+                  { \use:c { \__ekeys_cmd_arg_n: - } ##1 }
+              }
+          }
+          {
+            \cs_set_protected:cpx { \__ekeys_cmd_arg_n: ? \token_to_str:N #1 } #1 ##1 #2
+              { 
+                \__ekeys_cmd_add_arg:n { \int_use:N \l__ekeys_cmd_tmpa_int } 
+                \bool_if:NTF \l__ekeys_cmd_raw_bool
+                  {
+                    \__ekeys_cmd_add_arg:e 
+                      {
+                        \exp_not:n { \exp_not:N #1 } 
+                        { \exp_not:N \exp_not:o {##1} }
+                        \__ekeys_wise_exp_notii:n {#2}
+                      }
+                  }
+                  { \__ekeys_cmd_add_arg:n {##1} }
+                \exp_not:n { \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code: }
+              }
+            \cs_set_protected:cpx { \__ekeys_cmd_arg_n: - \token_to_str:N #1 } ##1
+              {
+                \exp_not:n { \token_if_eq_meaning:NNTF #1 } ##1
+                  { \use:c { \__ekeys_cmd_arg_n: ? \token_to_str:N #1 } }
+                  { \use:c { \__ekeys_cmd_arg_n: - } }
+                ##1
+              }
+            \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str
+              { \use:c { \__ekeys_cmd_arg_n: ? \token_to_str:N #1 } }
+          }
+        \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str
+          { \use:c { \__ekeys_cmd_arg_n: - \token_to_str:N #1 } }
+        \__ekeys_cmd_grab_T_do_built:Nnw #3 \q__ekeys_stop
+      }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_T_built:nww #1 #2 \__ekeys_cmd_run_code:
+  {
+    \tl_set:Nn \l__ekeys_cmd_signature_tl {#2}
+    \__ekeys_peek_aval_token:TF { #1 } { #1 {} }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_T_nested:nnww 
+  #1#2 #3 \__ekeys_cmd_run_code:
+  {
+    \tl_set:Nn \l__ekeys_cmd_signature_tl {#3}
+    \exp_after:wN \cs_set_protected:Npn \l__ekeys_cmd_fn_tl ##1
+      {
+        \exp_after:wN \cs_set:Npn \l__ekeys_cmd_fn_tl ####1 ##1 ####2 \q__ekeys_stop
+          {
+            \tl_if_empty:nTF {####2} 
+              {
+                \__ekeys_cmd_add_arg:n { 0 }
+                \__ekeys_cmd_add_arg:o {#2}
+                \exp_after:wN \l__ekeys_cmd_signature_tl 
+                \exp_after:wN \__ekeys_cmd_run_code: 
+                \l__collectn_peeks_tl ##1
+              }
+              {
+                \__ekeys_cmd_add_arg:o 
+                  { \int_value:w \tl_count:n { ####1 ##1 } }
+                \__ekeys_cmd_grab_T_nested_aux:Nn ##1 {#1} ##1
+              }
+          }
+        \exp_last_unbraced:Ne \l__ekeys_cmd_fn_tl 
+          { \__ekeys_tl_even_items:Nn \use:n { ? #1 } } ##1 \q__ekeys_stop
+      }
+    \__ekeys_peek_aval_token:TF
+      { \l__ekeys_cmd_fn_tl }
+      { 
+        \__ekeys_cmd_add_arg:n { 0 } \__ekeys_cmd_add_arg:o {#2}
+        \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code: 
+      }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_T_nested_aux:Nn #1#2
+  {
+    \exp_after:wN \cs_set:Npn \l__ekeys_cmd_fn_tl ##1#1##2##3 \q__ekeys_stop
+      {
+        \__collectn_del_def:n 
+          {
+            \__ekeys_cmd_add_arg:n {####1}
+            \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code:
+          }
+        \__collectn_del_aux:Nn #1 {##2}
+      }
+    \l__ekeys_cmd_fn_tl #2 \q__ekeys_stop
+  }
+
+\cs_new_protected:Npn \__ekeys_cmd_grab_p_do:w #1
+  {
+    \bool_if:NTF \l__ekeys_cmd_built_bool
+      {
+        \elkernel_tl_set:Nx \l__ekeys_cmd_tmpa_tl { 0 }
+        \int_step_inline:nn { \tl_count:n {#1} }
+          { \elkernel_tl_set:Nx \l__ekeys_cmd_tmpa_tl { \l__ekeys_cmd_tmpa_tl {##1} } }
+        \exp_args:Nno \__ekeys_cmd_grab_P_do:w {#1} { \l__ekeys_cmd_tmpa_tl }
+      }
+      { \tl_set:Nn \l__ekeys_cmd_tmp_tl \__ekeys_cmd_grab_p:nww }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_P_do:w #1#2
+  {
+    \bool_if:NT \l__ekeys_cmd_built_bool
+      {
+        \cs_set_protected:cpx { \__ekeys_cmd_arg_n: } ##1
+          {
+            \exp_not:N \cs_if_exist:cTF 
+              { 
+                \__ekeys_cmd_arg_n: -
+                \exp_not:N \tl_if_empty:nF {##1} { \exp_not:N \token_to_str:N ##1 }
+              }
+              {
+                \exp_not:N \use:c 
+                  { \__ekeys_cmd_arg_n: - \exp_not:N \token_to_str:N ##1 } 
+              }
+              { \exp_not:c { \__ekeys_cmd_arg_n: - } }
+              ##1
+          }
+        \cs_set_protected:cpx { \__ekeys_cmd_arg_n: - }
+          { 
+            \__ekeys_cmd_add_arg:o { \tl_head:n {#2} } 
+            \exp_not:n 
+              { 
+                \exp_after:wN \l__ekeys_cmd_signature_tl 
+                \exp_after:wN \__ekeys_cmd_run_code: 
+                \l__collectn_peeks_tl
+              }
+          }
+        \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str 
+          { \use:c \__ekeys_cmd_arg_n: \use:c { \__ekeys_cmd_arg_n: - } }
+        \exp_last_unbraced:Ne \__ekeys_cmd_grab_P_do_built:nwNw { \tl_tail:n {#2} } 
+          \q__ekeys_mark \q__ekeys_stop #1 \q__ekeys_mark \q__ekeys_stop
+        \tl_put_right:Nx \l__ekeys_cmd_grab_tl 
+          { \__ekeys_cmd_grab_P_built:nww \use:c \__ekeys_cmd_arg_n: }
+        \use_none:nnnnnnn
+      }
+    \use:n { \tl_set:Nn \l__ekeys_cmd_tmp_tl { \__ekeys_cmd_grab_P:nnww } }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_P_do_built:nwNw 
+  #1 #2 \q__ekeys_stop #3 #4 \q__ekeys_stop
+  {
+    \token_if_eq_meaning:NNF #3 \q__ekeys_mark
+      {
+        \cs_set_protected:cpx { \__ekeys_cmd_arg_n: - \token_to_str:N #3 } ##1
+          { 
+            \exp_not:n { \token_if_eq_meaning:NNTF #3 } ##1
+              {
+                \__ekeys_cmd_add_arg:n { \exp_not:o {#1} } 
+                \exp_not:n { \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code: }
+              }
+              { \use:c { \__ekeys_cmd_arg_n: - } ##1 }
+          }
+        \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str
+          { \use:c { \__ekeys_cmd_arg_n: - \token_to_str:N #3 } }
+        \__ekeys_cmd_grab_P_do_built:nwNw #2 \q__ekeys_stop #4 \q__ekeys_stop
+      }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_P_built:nww #1 #2 \__ekeys_cmd_run_code:
+  { 
+    \tl_set:Nn \l__ekeys_cmd_signature_tl {#2}
+    \__ekeys_peek_aval_token:TF { #1 } { #1 {} }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_G_raw:nww #1 #2 \__ekeys_cmd_run_code:
+  {
+    \tl_set:Nn \l__ekeys_cmd_signature_tl { #2 \__ekeys_cmd_run_code: }
+    \__ekeys_peek_nonspace:NTF \c_group_begin_token
+      {
+        \collectn_value:Nnw \l__ekeys_cmd_tmp_toks
+          {
+            \__ekeys_cmd_add_arg:e { { \tex_the:D \l__ekeys_cmd_tmp_toks } }
+            \l__ekeys_cmd_signature_tl
+          } =
+      }
+      { 
+        \token_if_eq_meaning:NNTF \l_peek_token \scan_stop:
+          { \__ekeys_cmd_add_arg:o {#1} \exp_after:wN \l__ekeys_cmd_signature_tl \use_none:n }
+          { \__ekeys_cmd_add_arg:o {#1} \l__ekeys_cmd_signature_tl }
+      }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_U_do:w #1#2
+  {
+    \bool_if:NTF \l__ekeys_cmd_built_bool
+      {
+        \cs_set_protected:cpn { \__ekeys_cmd_arg_n: } ##1 #1
+          {
+            \__ekeys_cmd_add_arg:n {##1}
+            \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code: #2
+          }
+        \tl_put_right:Nx \l__ekeys_cmd_grab_tl
+          { \__ekeys_cmd_grab_U_built:nww \exp_not:c { \__ekeys_cmd_arg_n: } }
+        \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str { \use:c \__ekeys_cmd_arg_n: }
+      }
+      {
+        \tl_put_right:Nn \l__ekeys_cmd_grab_tl
+          { \__ekeys_cmd_grab_U:nnww {#1} {#2} }
+      }
+    \use_none:nnnnn
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_U_built:nww #1 #2 \__ekeys_cmd_run_code:
+  { \tl_set:Nn \l__ekeys_cmd_signature_tl {#2} #1 }
+
+\cs_new_protected:Npn \__ekeys_cmd_grab_W_do:w #1#2
+  {
+    \bool_if:NT \l__ekeys_cmd_built_bool
+      {
+        \cs_set_protected:cpx { \__ekeys_cmd_arg_n: } ##1
+          {
+            \__ekeys_peek_aval_token:TF 
+              { \exp_not:c { \__ekeys_cmd_arg_n: ? } {##1} }
+              { \__ekeys_cmd_grab_W_finalize: }
+          }
+        \cs_set_protected:cpn { \__ekeys_cmd_arg_n: ? } ##1 ##2
+          {
+            \exp_after:wN \cs_set_protected:Npn \l__ekeys_cmd_fn_tl 
+              ####1##2####2####3 \q__ekeys_stop
+              {
+                \tl_if_empty:nTF {####3}
+                  { \exp_after:wN \__ekeys_cmd_grab_W_finalize: \l__collectn_peeks_tl }
+                  { ####2 ####1####3 }
+                ##2
+              }
+            \l__ekeys_cmd_fn_tl ##1 ##2 \q__ekeys_mark \q__ekeys_stop
+          }
+        \cs_set_protected:cpn { \__ekeys_cmd_arg_n: - } 
+          { \tl_gclear:N \l__ekeys_cmd_tmp_tl }
+        \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str
+          { 
+            \use:c \__ekeys_cmd_arg_n: 
+            \use:c { \__ekeys_cmd_arg_n: ? } 
+            \use:c { \__ekeys_cmd_arg_n: - } 
+          }
+        \tl_clear:N \l__ekeys_cmd_tmpa_tl
+        \__ekeys_cmd_grab_W_do_built:nNnwnw 
+          #1 \q__ekeys_mark \q__ekeys_mark \q__ekeys_mark \q__ekeys_stop
+          #2 \q__ekeys_mark \q__ekeys_stop
+        \cs_set_protected:cpx { \__ekeys_cmd_arg_n: - }
+          { 
+            \exp_not:v { \__ekeys_cmd_arg_n: - }
+            \exp_not:n 
+              {
+                \use_ii_i:nn 
+                  { \tl_put_right:No \l__ekeys_cmd_args_tl \l__ekeys_cmd_tmp_tl }
+              }
+          }
+        \tl_put_right:Nx \l__ekeys_cmd_grab_tl
+          { 
+            \__ekeys_cmd_grab_W_built:Nnnww \use:c \__ekeys_cmd_arg_n:
+            { \exp_not:o \l__ekeys_cmd_tmpa_tl }
+            \use:c { \__ekeys_cmd_arg_n: - }
+          }
+        \use_none:nnnnnnn 
+      }
+    \use:n { \tl_set:Nn \l__ekeys_cmd_tmp_tl { \__ekeys_cmd_grab_W:nnww } }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_W_do_built:nNnwnw 
+  #1#2#3#4 \q__ekeys_stop #5 #6 \q__ekeys_stop 
+  {
+    \token_if_eq_meaning:NNF #2 \q__ekeys_mark
+      {
+        \cs_set_protected:cpx { \__ekeys_cmd_arg_n: - }
+          {
+            \exp_not:v { \__ekeys_cmd_arg_n: - }
+            \exp_not:N \tl_if_exist:NTF 
+            \exp_not:c { __ekeys_cmd_W_ #1 ~arg }
+              {
+                \bool_if:NTF \l__ekeys_cmd_raw_bool
+                  {
+                    \tl_gput_right:Nx \exp_not:N \l__ekeys_cmd_tmp_tl
+                      { { 
+                        \exp_not:n { \exp_not:N #2 }
+                        { \exp_not:N \exp_not:o \exp_not:c { __ekeys_cmd_W_ #1 ~arg } }
+                        \__ekeys_wise_exp_notii:n {#3}
+                      } }
+                  }
+                  {
+                    \tl_gput_right:Nx \exp_not:N \l__ekeys_cmd_tmp_tl
+                      { { \exp_not:N \exp_not:o \exp_not:c { __ekeys_cmd_W_ #1 ~arg } } }
+                  }
+              }
+              { 
+                \tl_gput_right:Nn \exp_not:N \l__ekeys_cmd_tmp_tl 
+                  { { \exp_not:o {#5} } }
+              }
+          }
+        \bool_lazy_and:nnTF
+          { \bool_if_p:N \l__ekeys_cmd_nested_bool }
+          { ! \tl_if_empty_p:n {#3} }
+          {
+            \cs_set_protected:cpx { \__ekeys_cmd_arg_n: - #1 } ##1 #2 \q__ekeys_mark
+              {
+                \__collectn_del_def:n 
+                  {
+                    \tl_set:Nn \exp_not:c { __ekeys_cmd_W_ #1 ~arg } {####1}
+                    \exp_not:N \tl_if_empty:nTF {##1}
+                      { \exp_not:N \__ekeys_cmd_grab_W_finalize: }
+                      { \use:c { \__ekeys_cmd_arg_n: } {##1} }
+                  }
+                \exp_not:n { \__collectn_del_aux:Nn #2 {#3} }
+              }
+          }
+          {
+            \cs_set_protected:cpx { \__ekeys_cmd_arg_n: ? #1 } ##1 #2 ##2 #3
+              {
+                \tl_set:Nn \exp_not:c { __ekeys_cmd_W_ #1 ~arg } {##2}
+                \exp_not:N \tl_if_empty:nTF {##1}
+                  { \exp_not:N \__ekeys_cmd_grab_W_finalize: }
+                  { \use:c { \__ekeys_cmd_arg_n: } {##1} }
+              }
+            \cs_set_protected:cpx { \__ekeys_cmd_arg_n: - #1 } ##1 #2 \q__ekeys_mark
+              { \use:c { \__ekeys_cmd_arg_n: ? #1 } {##1} }
+            \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str
+              { \use:c { \__ekeys_cmd_arg_n: ? #1 } }
+          }
+        \tl_put_right:Nx \l__ekeys_cmd_tmpa_tl
+          { \exp_not:N #2 \use:c { \__ekeys_cmd_arg_n: - #1 } }
+        \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str
+          { \use:c { \__ekeys_cmd_arg_n: - #1 } }
+        \__ekeys_cmd_grab_W_do_built:nNnwnw #4 \q__ekeys_stop #6 \q__ekeys_stop
+      }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_W_built:Nnnww #1#2#3 #4 \__ekeys_cmd_run_code:
+  {
+    \group_begin:
+    \cs_set_protected:Npx \__ekeys_cmd_grab_W_finalize:
+      { \exp_not:n { #3 \group_end: #4 \__ekeys_cmd_run_code: } }
+    #1 {#2}
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_W_nested:nnww #1#2 #3 \__ekeys_cmd_run_code:
+  {
+    \tl_set:Nn \l__ekeys_cmd_signature_tl {#3}
+    \group_begin:
+    \cs_set_protected:Npn \__ekeys_cmd_grab_W_finalize:
+      {
+        \tl_gclear:N \l__ekeys_cmd_tmp_tl
+        \__ekeys_cmd_grab_W_add_args:nnn #1 \q__ekeys_mark \q__ekeys_mark \q__ekeys_mark
+          \__ekeys_break_point:n \group_end:
+        \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code:
+      }
+    \__ekeys_cmd_grab_W_nested_loop:nnNNwnnw 
+      { } #1 \q__ekeys_mark \q__ekeys_mark \q__ekeys_mark \q__ekeys_stop 
+      { } #2 \q__ekeys_mark \q__ekeys_mark \q__ekeys_stop
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_W_nested_loop:nnNNwnnw 
+  #1#2#3#4 #5 \q__ekeys_stop #6#7 #8 \q__ekeys_stop
+  {
+    \token_if_eq_meaning:NNTF #3 \q__ekeys_mark
+      { \__ekeys_cmd_grab_W_finalize: }
+      {
+        \__ekeys_peek_nonspace:NTF #3
+          {
+            \__collectn_del_def:n 
+              {
+                \tl_set:cn { __ekeys_cmd_W_ #2 ~arg } {##1}
+                \__ekeys_cmd_grab_W_nested_loop:nnNNwnnw 
+                  { } #1#5 \q__ekeys_stop { } #6#8 \q__ekeys_stop
+              }
+            \__collectn_del_aux:Nn #3 {#4}
+          }
+          { 
+            \tl_set:co { __ekeys_cmd_W_ #2 ~arg } {#7}
+            \__ekeys_cmd_grab_W_nested_loop:nnNNwnnw % #4 may be empty
+              { #1{#2}{#3}{#4} } #5 \q__ekeys_stop { #6{#7} } #8 \q__ekeys_stop
+          }
+      }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_k_raw:nww #1 #2 \__ekeys_cmd_run_code:
+  {
+    \tl_set:Nn \l__ekeys_cmd_signature_tl { #2 \__ekeys_cmd_run_code: }
+    \collectn_scan_keyword:nTF {#1}
+      { \__ekeys_cmd_add_arg:n {#1} \l__ekeys_cmd_signature_tl }
+      { \__ekeys_cmd_add_arg:n { } \l__ekeys_cmd_signature_tl }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_C:Nnww #1#2 #3 \__ekeys_cmd_run_code: 
+  { #1 {#2} {#3} }
+\seq_new:N \g__ekeys_cmd_argnums_seq
+\cs_new_protected:Npn \__ekeys_cmd_K_store_status:nn #1#2
+  { % pop left is faster than pop right
+    \int_gincr:N \g__ekeys_nested_level_int
+    \cs_set_eq:cN { ekeys-cmd/type-K/status-fn \int_use:N \g__ekeys_nested_level_int }
+      \l__ekeys_cmd_fn_tl
+    \cs_set_eq:cN 
+      { ekeys-cmd/type-K/status-code \int_use:N \g__ekeys_nested_level_int }
+      \__ekeys_cmd_run_code:
+    \cs_set_eq:cN 
+      { ekeys-cmd/type-K/status-args \int_use:N \g__ekeys_nested_level_int }
+      \l__ekeys_cmd_args_tl
+    \tl_set:cn
+      { ekeys-cmd/type-K/status-signature \int_use:N \g__ekeys_nested_level_int }
+      {#2}
+    \seq_gput_left:Nn \g__ekeys_cmd_argnums_seq {#1}
+  }
+\cs_new_protected:Npn \__ekeys_cmd_K_restore_status:
+  {
+    \cs_set_eq:Nc \l__ekeys_cmd_fn_tl
+      { ekeys-cmd/type-K/status-fn \int_use:N \g__ekeys_nested_level_int }
+    \cs_set_eq:Nc \__ekeys_cmd_run_code:
+      { ekeys-cmd/type-K/status-code \int_use:N \g__ekeys_nested_level_int }
+    \cs_set_eq:Nc \l__ekeys_cmd_args_tl
+      { ekeys-cmd/type-K/status-args \int_use:N \g__ekeys_nested_level_int }
+    \cs_set_eq:Nc \l__ekeys_cmd_signature_tl
+      { ekeys-cmd/type-K/status-signature \int_use:N \g__ekeys_nested_level_int }
+    \seq_gpop_left:NN \g__ekeys_cmd_argnums_seq \l__ekeys_cmd_tmpk_tl
+    \int_gdecr:N \g__ekeys_nested_level_int
+  }
+\cs_new_protected:Npn \__ekeys_cmd_K_restore_status:TF
+  {
+    \cs_if_exist:cTF 
+      { ekeys-cmd/type-K/status-signature \int_use:N \g__ekeys_nested_level_int }
+      { \__ekeys_cmd_K_restore_status: \use_i:nn } { \use_ii:nn }
+  }
+\cs_new_protected:Npn \__ekeys_cmd_grab_K:nnww #1#2 #3 \__ekeys_cmd_run_code:
+  { 
+    \__ekeys_cmd_K_store_status:nn {#1} { #3 \__ekeys_cmd_run_code: }
+    #2 
+  }
+\cs_new_protected:cpn { __ekeys_cmd_grab_?:nw } #1 #2 \__ekeys_cmd_run_code:
+  { \__ekeys_cmd_K_store_status:nn { -1 } { #2 \__ekeys_cmd_run_code: } #1 }
+
+\cs_new:Npn \__ekeys_cmd_arg_n: 
+  { \l__ekeys_cmd_str \c_space_tl arg \int_use:N \l__ekeys_cmd_arg_int }
+\cs_new:Npn \__ekeys_cmd_register_n:
+  { \l__ekeys_cmd_str \c_space_tl register \int_use:N \g__ekeys_cmd_argid_int }
+\cs_new:Npn \__ekeys_cmd_preprocessor_n:
+  { \l__ekeys_cmd_str \c_space_tl preprocessor \int_use:N \g__ekeys_cmd_argid_int }
+
+\msg_new:nnn { ekeys } { unknown-c-register }
+  { Unknown~register~type~`#2'~for~#1. }
+
+\cs_new_protected:Npn \ekeys_cmd_new_scanner_alias:nn #1#2
+  {
+    \cs_if_exist:cTF { ekeys-cmd/type-K/alias-#1 }
+      { \msg_error:nnn { ekeys } { cmd-K-alias-exist } {#1} }
+      { 
+        \cs_set:cpx { ekeys-cmd/type-K/alias-#1 } ##1
+          { \__ekeys_cmd_type_K_aux:n { \exp_not:n {#2} ##1 } } 
+      }
+  }
+\cs_new_protected:Npn \ekeys_cmd_new_scanner_alias:nnn #1#2#3
+  {
+    \cs_if_exist:cTF { ekeys-cmd/type-K/alias-#1 }
+      { \msg_error:nnn { ekeys } { cmd-K-alias-exist } {#1} }
+      { 
+        \cs_set:cpx { ekeys-cmd/type-K/alias-#1 } ##1
+          { \__ekeys_cmd_type_K_break:n { \exp_not:n {#3} ##1 } } 
+      }
+  }
+\cs_new_protected:Npn \ekeys_cmd_scanner_alias_undefine:n #1
+  {
+    \cs_if_exist:cTF { ekeys-cmd/type-K/alias-#1 }
+      { \cs_set_eq:cN { ekeys-cmd/type-K/alias-#1 } \tex_undefined:D }
+      { \msg_error:nnn { ekeys } { cmd-K-unknown-alias } {#1} }
+  }
+\ekeysdeclarecmd \ekeysnewscanneralias { m o m }
+  {
+    \use:e 
+      {
+        \tl_if_novalue:nTF {#2}
+          \ekeys_cmd_new_scanner_alias:nn 
+          \ekeys_cmd_new_scanner_alias:nnn 
+        { \tl_trim_spaces:n {#1} } 
+        \tl_if_novalue:nT {#2} \use_none:n { \tl_trim_spaces:n {#2} }
+        { \tl_trim_spaces:n {#3} }
+      }
+  }
+\cs_new_protected:cpn { ekeys-cmd/type-K/define-?:w } #1#2#3#4#5
+  {
+    \__ekeys_cmd_type_K_break:nn 
+      { 
+        \tl_set:Nn \l__ekeys_cmd_tmp_tl {#2}
+        \__ekeys_cmd_scanner_preprocessor: \__ekeys_cmd_add_grab:x 
+      }
+      { 
+        \use:c { __ekeys_cmd_grab_?:nw } 
+        { \exp_not:c \__ekeys_cmd_preprocessor_n: \exp_not:o \l__ekeys_cmd_tmp_tl } 
+      }
+  }
+\cs_new:Npn \__ekeys_cmd_scanner_preprocessor:
+  {
+    \bool_lazy_and:nnTF { ! \tl_if_empty_p:N \l__ekeys_cmd_tmp_tl }
+      { \str_if_eq_p:ee { \tl_head:N \l__ekeys_cmd_tmp_tl } { * } }
+      { 
+        \ekeys_cmd_after_declare:n 
+          { \bool_set_true:N \l_ekeys_cmd_defaults_bool }
+        \exp_args:Ne \__ekeys_cmd_scanner_preprocessor_aux:n 
+          { \tl_tail:N \l__ekeys_cmd_tmp_tl }
+      }
+      {
+        \ekeys_cmd_after_declare:n 
+          { \bool_set_false:N \l_ekeys_cmd_defaults_bool }
+        \exp_args:No \__ekeys_cmd_scanner_preprocessor_aux:n \l__ekeys_cmd_tmp_tl
+      }
+  }
+\cs_new:Npn \__ekeys_cmd_scanner_preprocessor_aux:n #1
+  {
+    \int_case:nnF { \tl_count:n {#1} }
+      {
+        { 0 } 
+          {
+            \__ekeys_cmd_scanner_preprocessor_aux:nn { } {#1}
+            \tl_set:Nn \l__ekeys_cmd_tmp_tl { }
+          }
+        { 1 } 
+          {
+            \__ekeys_cmd_scanner_preprocessor_aux:nn #1 { }
+            \tl_set:Nn \l__ekeys_cmd_tmp_tl { }
+          }
+      }
+      { \__ekeys_cmd_scanner_preprocessor_aux:nnw #1 \q__ekeys_mark \q__ekeys_stop }
+  }
+\cs_new:Npn \__ekeys_cmd_scanner_preprocessor_aux:nnw #1#2 #3 \q__ekeys_stop
+  {
+    \__ekeys_cmd_scanner_preprocessor_aux:nn {#1} {#2}
+    \tl_set:Nx \l__ekeys_cmd_tmp_tl 
+      { \tl_trim_spaces_apply:nN {#3} \__ekeys_strip_mark:n }
+  }
+\cs_new:Npn \__ekeys_cmd_scanner_preprocessor_aux:nn #1#2
+  {
+    \int_gincr:N \g__ekeys_cmd_argid_int
+    \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str 
+      { \exp_not:c \__ekeys_cmd_preprocessor_n: }
+    \ekeys_cmd_after_declare:e 
+      {
+        \tl_if_blank:nTF {#2}
+          {
+            \ekeys_declare_cmd_x:Nnn \exp_not:c \__ekeys_cmd_preprocessor_n:
+              { \exp_not:n {#1} }
+              {
+                \ekeys_cmd_scanner_end: #2
+                \exp_not:N \__ekeys_braced_parameters:n \l__ekeys_cmd_arg_int
+              }
+          }
+          {
+            \ekeys_declare_cmd:Nnn \exp_not:c \__ekeys_cmd_preprocessor_n:
+              { \exp_not:n {#1} } { \exp_not:n {#2} }
+          }
+      }
+  }
+\cs_new_protected:cpn { ekeys-cmd/type-K/define-u:w } #1#2#3#4#5
+  {
+    \cs_if_exist:cTF { ekeys-cmd/type-K/alias- \tl_head:w #2 \prg_do_nothing: \q_stop }
+      {
+        \exp_args:Nne \use:c 
+          { ekeys-cmd/type-K/alias- \tl_head:n {#2} } { \tl_tail:n {#2} }
+      }
+      { 
+        \msg_error:nnx { ekeys } { cmd-K-unknown-alias } { \tl_head:n {#2} } 
+        \__ekeys_break:
+      }
+  }
+\msg_new:nnn { ekeys } { cmd-K-alias-exist } { Scanner~alias~`#1'~already~exists. }
+\msg_new:nnn { ekeys } { cmd-K-unknown-alias } { Unknown~alias~`#1'~for~type~K. }
+\int_new:N \l_ekeys_cmd_scanner_args_int
+% name, arg num, pre work, parameter, code
+\cs_new_protected:Npn \ekeys_cmd_new_scanner:nnnpn #1#2 #3
+  {
+    \cs_if_exist:cTF { ekeys-cmd/type-K/define-#1:w }
+      { \msg_error:nnn { ekeys } { cmd-scanner-exist } {#1} \__collectn_use_none:pn }
+      {
+        \exp_args:Nf \__ekeys_cmd_new_scanner_aux:nnn { \int_eval:n {#2} } {#1} {#3}
+        \cs_set_protected:cpn { ekeys-cmd/type-K/scanner-#1: }
+      }
+  }
+\cs_new_protected:Npn \ekeys_cmd_new_scanner:nnnpx #1#2 #3
+  {
+    \cs_if_exist:cTF { ekeys-cmd/type-K/define-#1:w }
+      { \msg_error:nnn { ekeys } { cmd-scanner-exist } {#1} \__collectn_use_none:pn }
+      {
+        \exp_args:Nf \__ekeys_cmd_new_scanner_aux:nnn { \int_eval:n {#2} } {#1} {#3}
+        \cs_set_protected:cpx { ekeys-cmd/type-K/scanner-#1: }
+      }
+  }
+\cs_new_protected:Npn \ekeys_cmd_new_scanner:nnpn #1#2 
+  { \ekeys_cmd_new_scanner:nnnpn {#1} {#2} { } }
+\cs_new_protected:Npn \ekeys_cmd_new_scanner:nnpx #1#2 
+  { \ekeys_cmd_new_scanner:nnnpx {#1} {#2} { } }
+\cs_new_protected:Npn \ekeys_cmd_scanner_undefine:n #1
+  {
+    \cs_set_eq:cN { ekeys-cmd/type-K/define-#1:w } \tex_undefined:D
+    \cs_set_eq:cN { ekeys-cmd/type-K/scanner-#1: } \tex_undefined:D
+  }
+\cs_new:Npn \__ekeys_cmd_new_scanner_aux:nnn #1#2#3
+  {
+    % ekeys-cmd name, raw, nested, extra args 
+    \cs_set:cpn { ekeys-cmd/type-K/define-#2:w } ##1##2##3##4##5 
+      {
+        \int_set:Nn \l_ekeys_cmd_scanner_args_int {#1}
+        \tl_set:No \l__ekeys_cmd_scanner_tl
+          { \cs:w ekeys-cmd/type-K/scanner-#2: \cs_end: }
+        #3
+        \int_add:Nn \l__ekeys_cmd_arg_int \l_ekeys_cmd_scanner_args_int
+      }
+  }
+\cs_new_protected:Npn \EKeysEndPreprocessor 
+  { 
+    \__ekeys_cmd_K_restore_status:TF
+      { \l__ekeys_cmd_signature_tl } { }
+  }
+\cs_new_protected:Npn \ekeys_cmd_scanner_end:
+  { 
+    \__ekeys_cmd_K_restore_status:
+    \cs_if_exist_use:NF \l__ekeys_cmd_signature_tl
+      { 
+        \msg_error:nnx { ekeys } { cmd-misplaced-scanner } 
+          { \c_backslash_str \ekeys_cmd_name: } 
+      }
+  }
+\cs_new_nopar:Npn \ekeys_cmd_args: { \seq_item:Nn \g__ekeys_cmd_argnums_seq { 1 } }
+\cs_new_protected:Npn \ekeys_cmd_add_args:n
+  { 
+    \tl_put_right:cn
+      { ekeys-cmd/type-K/status-args \int_use:N \g__ekeys_nested_level_int }
+  }
+\cs_new_protected:Npn \ekeys_cmd_add_args:e
+  { 
+    \tl_put_right:cx
+      { ekeys-cmd/type-K/status-args \int_use:N \g__ekeys_nested_level_int }
+  }
+\cs_generate_variant:Nn \ekeys_cmd_add_args:n { o, V, v, f }
+\cs_new_protected:Npn \ekeys_cmd_add_arg:n #1
+  {
+    \tl_put_right:cn 
+      { ekeys-cmd/type-K/status-args \int_use:N \g__ekeys_nested_level_int }
+      { {#1} }
+  }
+\cs_generate_variant:Nn \ekeys_cmd_add_arg:n { o, V, v, f, e }
+\cs_new_protected:Npn \ekeys_cmd_register_cs:N #1
+  { \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str { \exp_not:N #1 } }
+\cs_new_protected:Npn \ekeys_cmd_register_cs:c #1
+  { \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str { \exp_not:c {#1} } }
+\msg_new:nnn { ekeys } { cmd-scanner-exist }
+  { Scanner~`#1'~has~been~defined,~you~need~change~another~name. }
+\msg_new:nnn { ekeys } { cmd-misplaced-scanner } 
+  { Misplaced~scanner~ender~at~`#1',~it~must~be~used~in~defining~ekeys-cmd's~scanner. }
+\msg_new:nnn { ekeys } { cmd-bad-scanner }
+  { Scanner~`#2'~is~invalid~when~defining~`#1'. }
+
+\bool_new:N \l__ekeys_cmd_tmpk_bool
+\int_new:N \l__ekeys_cmd_tmpk_int
+\tl_new:N \l__ekeys_cmd_tmpk_tl
+\ekeys_cmd_new_scanner:nnnpn { lohi } { 2 } 
+  {
+    \ekeys_cmd_register_cs:c { #1-arg#3-lohi-raw }
+    \ekeys_cmd_register_cs:c { #1-arg#3-lohi-default }
+    \bool_set:cn { #1-arg#3-lohi-raw } {#4}
+    \tl_if_blank:nTF {#2}
+      { \tl_set:cx { #1-arg#3-lohi-default } { { \c_novalue_tl }{ \c_novalue_tl } } }
+      {
+        \tl_if_single:nTF {#2}
+          { \tl_set:cx { #1-arg#3-lohi-default } { { \tl_head:n {#2} }{ \tl_head:n {#2} } } }
+          { \tl_set:cx { #1-arg#3-lohi-default } { \__ekeys_cmd_scanner_lohi_aux:nn #2 \prg_do_nothing: \q__ekeys_stop } }
+      }
+  }
+  {
+    \collectn_lohi:Nnw \l__ekeys_cmd_tmpk_tl
+      {
+        % \l__ekeys_cmd_tmpk_tl will be {^{.}}{_{.}} or {^{.}} or {_{.}} or empty
+        \int_case:nnF { \tl_count:N \l__ekeys_cmd_tmpk_tl }
+          {
+            { 0 } { \__ekeys_cmd_scanner_lohi:nn { } { } }
+            { 1 } 
+              { \exp_after:wN \__ekeys_cmd_scanner_lohi:nn \l__ekeys_cmd_tmpk_tl { } }
+          }
+          { \exp_after:wN \__ekeys_cmd_scanner_lohi:nn \l__ekeys_cmd_tmpk_tl }
+            \prg_do_nothing: \q__ekeys_stop
+        \ekeys_cmd_scanner_end:
+      }
+  }
+\cs_new:Npn \__ekeys_cmd_scanner_lohi_aux:nn #1#2 #3 \q__ekeys_stop 
+  { { \exp_not:n {#1} } { \exp_not:n {#2} } }
+\cs_new:Npn \__ekeys_cmd_scanner_lohi:nn #1#2 #3 \q__ekeys_stop
+  {
+    \tl_set_eq:Nc \l__ekeys_cmd_tmpk_tl
+      { \ekeys_cmd_name:-arg\ekeys_cmd_args:-lohi-default }
+    \bool_set_eq:Nc \l__ekeys_cmd_tmpk_bool
+      { \ekeys_cmd_name:-arg\ekeys_cmd_args:-lohi-raw }
+    \tl_if_empty:nTF {#1}
+      { \ekeys_cmd_add_args:o \l__ekeys_cmd_tmpk_tl }
+      {
+        \tl_if_head_eq_catcode:nNTF {#1} \c_math_subscript_token
+          {
+            \bool_if:NTF \l__ekeys_cmd_tmpk_bool
+              { \ekeys_cmd_add_arg:n {#1} }
+              { \exp_after:wN \ekeys_cmd_add_arg:n \use_none:n #1 }
+            \tl_if_empty:nTF {#2}
+              { \ekeys_cmd_add_arg:e { \tl_item:Nn \l__ekeys_cmd_tmpk_tl { 2 } } }
+              { 
+                \bool_if:NTF \l__ekeys_cmd_tmpk_bool
+                  { \ekeys_cmd_add_arg:n {#2} }
+                  { \exp_after:wN \ekeys_cmd_add_arg:n \use_none:n #2 }
+              }
+          }
+          {
+            \tl_if_empty:nTF {#2}
+              { \ekeys_cmd_add_arg:e { \tl_item:Nn \l__ekeys_cmd_tmpk_tl { 1 } } }
+              { 
+                \bool_if:NTF \l__ekeys_cmd_tmpk_bool
+                  { \ekeys_cmd_add_arg:n {#2} }
+                  { \exp_after:wN \ekeys_cmd_add_arg:n \use_none:n #2 }
+              }
+            \bool_if:NTF \l__ekeys_cmd_tmpk_bool
+              { \ekeys_cmd_add_arg:n {#1} }
+              { \exp_after:wN \ekeys_cmd_add_arg:n \use_none:n #1 }
+          }
+      }
+  }
+\cs_new:Npn \__ekeys_braced_parameters:n #1
+  {
+    \if_case:w #1 
+    \or: {##1} \or: {##1}{##2} \or: {##1}{##2}{##3} \or: {##1}{##2}{##3}{##4} 
+    \or: {##1}{##2}{##3}{##4}{##5}
+    \or: {##1}{##2}{##3}{##4}{##5}{##6}
+    \or: {##1}{##2}{##3}{##4}{##5}{##6}{##7}
+    \or: {##1}{##2}{##3}{##4}{##5}{##6}{##7}{##8}
+    \or: {##1}{##2}{##3}{##4}{##5}{##6}{##7}{##8}{##9}
+    \fi:
+  }
+% args: {definition}, or {num}{parameters}, or {num}{parameters}{definition}, or 
+% {*num}{parameters}{definition}
+\ekeys_cmd_new_scanner:nnnpn { define } { -1 }
+  {
+    \bool_lazy_or:nnTF { \tl_if_empty_p:n {#2} } { \tl_if_single_p:n {#2} }
+      { \tl_set:Nn \l__ekeys_cmd_tmpk_tl { {-1}{}#2 } }
+      { \tl_set:Nn \l__ekeys_cmd_tmpk_tl {#2} }
+    \int_set:Nn \l_ekeys_cmd_scanner_args_int 
+      { 
+        \exp_args:No \tl_if_head_eq_charcode:nNTF { \tl_head:w #2 \q_stop } *
+          { -1 } { \tl_item:Nn \l__ekeys_cmd_tmpk_tl { 1 } + 0 }
+      }
+    \int_gincr:N \g__ekeys_cmd_argid_int
+    \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str 
+      { \exp_not:c \__ekeys_cmd_scanner_define_n: }
+    \tl_put_right:Nx \l__ekeys_cmd_scanner_tl 
+      { \exp_not:c \__ekeys_cmd_scanner_define_n: }
+    \use:e 
+      {
+        \cs_set_protected:Npn \exp_not:c { \__ekeys_cmd_scanner_define_n: } 
+          \tl_item:Nn \l__ekeys_cmd_tmpk_tl { 2 }
+          {
+            \tl_item:Nn \l__ekeys_cmd_tmpk_tl { 3 }
+            \int_compare:nNnF \l_ekeys_cmd_scanner_args_int < \c_zero_int
+              {
+                \ekeys_cmd_add_args:n 
+                  { \__ekeys_braced_parameters:n \l_ekeys_cmd_scanner_args_int }
+                \ekeys_cmd_scanner_end: 
+              }
+          }
+      }
+    \int_set:Nn \l_ekeys_cmd_scanner_args_int
+      { 
+        \exp_args:No \tl_if_head_eq_charcode:nNTF { \tl_head:w #2 \q_stop } *
+          { \exp_after:wN \use_none:n \tl_head:w #2 \q_stop }
+          { \int_max:nn \l_ekeys_cmd_scanner_args_int \c_zero_int }
+      }
+  }
+  { }
+\cs_new:Npn \__ekeys_cmd_scanner_define_n:
+  { \l__ekeys_cmd_str \c_space_tl scanner-define\int_use:N \g__ekeys_cmd_argid_int }
