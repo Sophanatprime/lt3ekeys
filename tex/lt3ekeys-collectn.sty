@@ -17,7 +17,7 @@
 % lt3ekeysext.sty, lt3ekeys-elkernel.sty, lt3ekeys-collectn.sty,
 % lt3ekeys.tex and lt3ekeys-usrguide-cn.tex.
 %
-\ProvidesExplPackage{lt3ekeys-collectn}{2024/03/18}{0.2}{collect value and box}
+\ProvidesExplPackage{lt3ekeys-collectn}{2024/03/24}{0.2b}{collect value and box}
 \RequirePackage{varwidth}
 \RequirePackage{lt3ekeys-elkernel}
 \box_new:N \l__collectn_box
@@ -25,6 +25,7 @@
 \quark_new:N \q__collectn_stop
 \quark_new:N \q__collectn_mark
 \quark_new:N \q__collectn_nil
+\elkernel_quark_new_conditional:Nn \__collectn_quark_if_mark:n { TF }
 \cs_new:Npn \__collectn_use_none_delimit_by_q_stop:nw #1 #2 \q__collectn_stop {#1}
 
 \cs_new:Npn \__collectn_use_none:pn #1# { \use_none:n }
@@ -34,6 +35,13 @@
   { 
     \exp_args:No \tl_if_single_token:nTF { \token_to_str:N #1 } 
       { \c_false_bool } { \c_true_bool }
+  }
+
+\bool_new:N \l_collectn_long_verbatim_bool
+\cs_new_protected:Npn \collectn_verbatim:Nnw 
+  { 
+    \bool_set_eq:NN \l_elkernel_long_v_bool \l_collectn_long_verbatim_bool
+    \elkernel_collect_verb:Nnw
   }
 
 % #1=box num, #2=primitive box cs, #3=process code
@@ -487,6 +495,8 @@
     \tl_set:Nn \l__collectn_delb_tl { \group_align_safe_end: #3 }
     \__collectn_peeker:TF { \__collectn_if_in:N } { \l__collectn_delb_tl }
   }
+\cs_new_protected:Npn \collectn_if_in:nT #1#2 { \collectn_if_in:nTF {#1} {#2} { } }
+\cs_new_protected:Npn \collectn_if_in:nF #1 { \collectn_if_in:nTF {#1} { } }
 \cs_new:Npn \__collectn_if_in:N #1
   { % to support #, cannot use \tl_if_in:NnTF
     \exp_last_unbraced:Nno \__collectn_if_in_aux:nn 
@@ -508,24 +518,21 @@
       }
   }
 
-\cs_new_protected:Npn \collectdelimitedarg #1#2 #3#4
-  {
-    \group_align_safe_begin:
-    \tl_set:Nn \l__collectn_delb_tl {#4}
-    \__collectn_del_def:n 
-      { \group_align_safe_end: \tl_set:Nn #3 {##1} \l__collectn_delb_tl }
-    \__collectn_peeker:NTF #1
-      { \__collectn_del_aux:Nn #1 {#2} }
-      { \exp_args:NV \__collectn_del_do:n \c_novalue_tl }
-  }
+\bool_new:N \l_collectn_delimited_strip_bool
+\bool_set_true:N \l_collectn_delimited_strip_bool
+\cs_new_protected:Npn \collectn_delimited_inline:NNn { \collectn_delimited_inline:Nnn }
 \cs_new_protected:Npn \collectn_delimited_inline:Nnn #1#2 #3
   {
     \group_align_safe_begin:
     \__collectn_del_def:n { \group_align_safe_end: #3 }
     \__collectn_peeker:NTF #1
-      { \__collectn_del_aux:Nn #1 {#2} }
+      { 
+        \bool_if:NTF \l_collectn_delimited_strip_bool 
+          \__collectn_del_aux:Nn \__collectn_del_aux_no_strip:Nn #1 {#2} 
+      }
       { \__collectn_del_do:n { \q_no_value } }
   }
+\cs_new_protected:Npn \collectn_delimited_variable:NNNn { \collectn_delimited_variable:NnNn }
 \cs_new_protected:Npn \collectn_delimited_variable:NnNn #1#2 #3#4
   {
     \group_align_safe_begin:
@@ -533,15 +540,21 @@
     \__collectn_del_def:n 
       { \group_align_safe_end: \tl_set:Nn #3 {##1} \l__collectn_delb_tl }
     \__collectn_peeker:NTF #1
-      { \__collectn_del_aux:Nn #1 {#2} }
+      { 
+        \bool_if:NTF \l_collectn_delimited_strip_bool 
+          \__collectn_del_aux:Nn \__collectn_del_aux_no_strip:Nn #1 {#2} 
+      }
       { \__collectn_del_do:n { \q_no_value } }
   }
 \cs_new_protected:Npn \collectn_delimited_any_inline:nn #1 #2
   {
     \group_align_safe_begin:
+    \int_set:Nn \l__collectn_tmp_int { \tl_count:n {#1} }
+    \bool_lazy_and:nnF { \int_compare_p:nNn \l__collectn_tmp_int > 0 }
+      { \int_if_even_p:n \l__collectn_tmp_int }
+      { \msg_error:nnn { collectn } { invalid-delimiter-pair } {#1} }
     \tl_set:Nn \l__collectn_dela_tl { { 0 } { \q_no_value } }
-    \cs_set:Npn \__collectn_del_tmpa:w ##1##2
-      { \group_align_safe_end: #2 }
+    \cs_set:Npn \__collectn_del_tmpa:w ##1##2 { \group_align_safe_end: #2 }
     \cs_set:Npn \__collectn_del_tmp:w ##1
       {
         \cs_set:Npn \__collectn_del_tmp:w ####1 ##1 ####2 \q__collectn_stop
@@ -572,13 +585,74 @@
   }
 \cs_new_protected:Npn \__collectn_delimited_any:Nn #1#2
   {
-    \cs_set:Npn \__collectn_del_tmp:w ##1#1##2##3 \q__ekeys_stop
+    \cs_set:Npn \__collectn_del_tmp:w ##1#1##2##3 \q__collectn_stop
       {
         \__collectn_del_def:n 
           { \exp_after:wN \__collectn_del_tmpa:w \l__collectn_dela_tl {####1} }
-        \__collectn_del_aux:Nn #1 {##2}
+        \bool_if:NTF \l_collectn_delimited_strip_bool
+          \__collectn_del_aux:Nn \__collectn_del_aux_no_strip:Nn #1 {##2}
       }
-    \__collectn_del_tmp:w #2 \q__ekeys_stop
+    \__collectn_del_tmp:w #2 \q__collectn_stop
+  }
+\cs_new_protected:Npn \collectn_delimited_all_inline:nn #1#2
+  {
+    \group_begin: \group_align_safe_begin:
+    \cs_set:Npn \__collectn_del_tmpa:w ##1 { \group_align_safe_end: \group_end: #2 }
+    \int_set:Nn \l__collectn_tmp_int { \tl_count:n {#1} }
+    \bool_lazy_and:nnF { \int_compare_p:nNn \l__collectn_tmp_int > 0 }
+      { \int_if_even_p:n \l__collectn_tmp_int }
+      { \msg_error:nnn { collectn } { invalid-delimiter-pair } {#1} }
+    \tl_set:Nx \l__collectn_tmpa_tl
+      { 
+        \__collectn_delimited_all_aux:nnn { 1 } #1 
+        \q__collectn_mark \q__collectn_mark \q__collectn_stop
+      }
+    \tl_set:cn { __collectn_del_ \int_eval:n { \l__collectn_tmp_int/2 + 1 } ~arg }
+      { \q__collectn_mark }
+    \exp_last_unbraced:Nno \__collectn_delimited_all_loop:nnNNw {} \l__collectn_tmpa_tl
+      \q__collectn_mark \q__collectn_mark \q__collectn_mark \q__collectn_stop
+  }
+\cs_new:Npn \__collectn_delimited_all_aux:nnn #1#2#3
+  {
+    \__collectn_quark_if_mark:nTF {#3}
+      { \__collectn_use_none_delimit_by_q_stop:nw { } }
+      { 
+        {#1} \exp_not:N #2 { \exp_not:n {#3} }  
+        \exp_args:Nf \__collectn_delimited_all_aux:nnn { \int_eval:n { #1+1 } }
+      }
+  }
+\cs_new:Npn \__collectn_delimited_all_loop:nnNNw #1 #2#3#4 #5 \q__collectn_stop
+  {
+    \token_if_eq_meaning:NNTF #3 \q__collectn_mark
+      {
+        \exp_args:Ne \__collectn_del_tmpa:w 
+          { \__collectn_delimited_all_add_args:n { 1 } }
+      }
+      {
+        \__collectn_peeker:NTF #3
+          {
+            \__collectn_del_def:n 
+              {
+                \tl_set:cn { __collectn_del_#2~arg } {##1}
+                \__collectn_delimited_all_loop:nnNNw { } #1#5 \q__collectn_stop
+              }
+            \bool_if:NTF \l_collectn_delimited_strip_bool
+              \__collectn_del_aux:Nn \__collectn_del_aux_no_strip:Nn #3 {#4}
+          }
+          {
+            \tl_set:cn { __collectn_del_#2~arg } { \q_no_value }
+            \__collectn_delimited_all_loop:nnNNw { #1{#2}{#3}{#4} } #5 \q__collectn_stop
+          }
+      }
+  }
+\cs_new:Npn \__collectn_delimited_all_add_args:n #1
+  {
+    \exp_args:Nc \token_if_eq_meaning:NNTF { __collectn_del_#1~arg } \q__collectn_mark
+      { }
+      { 
+        { \exp_not:v { __collectn_del_#1~arg } }
+        \exp_args:Nf \__collectn_delimited_all_add_args:n { \int_eval:n { #1+1 } }
+      }
   }
 
 \cs_new_protected:Npn \__collectn_del_do:n #1 { }
@@ -592,7 +666,7 @@
       {
         \cs_set_protected:Npn \__collectn_del_aux:w ##1 #2
           {
-            \exp_after:wN \tl_if_in:nnTF \exp_after:wN { \use_none:n ##1 } {#1}
+            \tl_if_in:nnTF {##1} {#1}
               { \__collectn_del_aux:Nnn #1 {#2} {##1} }
               { \__collectn_del_do:w ##1 \q__collectn_stop }
           }
@@ -601,6 +675,20 @@
   }
 \cs_new:Npn \__collectn_del_do:w \q__collectn_mark #1 \q__collectn_stop 
   { \__collectn_del_do:n {#1} }
+\cs_new_protected:Npn \__collectn_del_aux_no_strip:Nn #1#2 #3 % #2 maybe blank 
+  {
+    \tl_if_empty:nTF {#2}
+      { \__collectn_del_do:n }
+      {
+        \cs_set_protected:Npn \__collectn_del_aux:w ##1 #2
+          {
+            \tl_if_in:nnTF {##1} {#1}
+              { \__collectn_del_aux:Nnn #1 {#2} {##1} }
+              { \exp_after:wN \__collectn_del_do:n \exp_after:wN { \use_none:n ##1 } }
+          }
+        \__collectn_del_aux:w \q__collectn_mark
+      }
+  }
 % basicly copy from \__cmd_grab_D_nested:NNnN 
 \cs_new:Npn \__collectn_grab_D_nested:w #1 \q_nil \q_stop 
   { \exp_not:o { \use_none:n #1 } }
@@ -636,6 +724,13 @@
           }
       }
     \__collectn_del_tmp:w #3 \q_nil \q__collectn_mark \ERROR
+  }
+\msg_new:nnnn { collectn } { invalid-delimiter-pair }
+  { The~delimiter~pairs~`#1'~is~invalid. }
+  { 
+    Delimiter~pairs~must~not~be~empty,~and~have~even~items. 
+    They~should~not~contain~explicit~or~implicit~group-begin,~
+    group-end~and~space~token.
   }
 
 \tl_new:N \l__collectn_kwa_tl

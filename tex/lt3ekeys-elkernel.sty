@@ -17,7 +17,7 @@
 % lt3ekeysext.sty, lt3ekeys-elkernel.sty, lt3ekeys-collectn.sty,
 % lt3ekeys.tex and lt3ekeys-usrguide-cn.tex.
 %
-\ProvidesExplPackage{lt3ekeys-elkernel}{2024/03/18}{v0.2}{export latex and latex3 kernel function}
+\ProvidesExplPackage{lt3ekeys-elkernel}{2024/03/24}{v0.2b}{export latex and latex3 kernel function}
 
 \cs_new_eq:NN \elkernel_cmd_if_xparse:NTF \__kernel_cmd_if_xparse:NTF
 \int_new:N \g_elkernel_prg_map_int
@@ -33,14 +33,40 @@
 \cs_new_eq:NN \elkernel_file_name_sanitize:n \__kernel_file_name_sanitize:n
 \cs_new_eq:NN \elkernel_int_expr:w \tex_numexpr:D
 \cs_new_eq:NN \elkernel_dim_expr:w \tex_dimexpr:D
+\cs_new_eq:NN \elkernel_mdfive:w \tex_mdfivesum:D
 
 \quark_new:N \q__elkernel_recursion_stop
 \quark_new:N \q__elkernel_recursion_tail
 \elkernel_quark_new_test:N \__elkernel_if_recursion_tail_stop_do:Nn
 
+
+\str_new:N \l__elkernel_filepath_str
+\str_new:N \l__elkernel_filename_str
+\str_new:N \l__elkernel_fileext_str
+\cs_new_protected:Npn \elkernel_file_with_options:nnn #1#2#3 % file, version, options
+  { 
+    \file_parse_full_name:nNNN {#1} 
+      \l__elkernel_filepath_str \l__elkernel_filename_str \l__elkernel_fileext_str
+    \str_if_empty:NF \l__elkernel_fileext_str
+      { 
+        \elkernel_tl_set:Nx \l__elkernel_fileext_str 
+          { \exp_after:wN \use_none:n \l__elkernel_fileext_str } 
+        \exp_args:Ne \@onefilewithoptions 
+          { 
+            \l__elkernel_filepath_str
+            \str_if_empty:NF \l__elkernel_filepath_str / \l__elkernel_filename_str 
+          } 
+          [{#3}] [{#2}] 
+          { \l__elkernel_fileext_str }
+      } 
+  }
+\cs_new_protected:Npn \elkernel_file_with_options:nn #1 % file, options
+  { \elkernel_file_with_options:nnn {#1} { } }
+
+
 % full copy of \__cmd_arg_to_keyvalue:nn
 \tl_new:N \l__elkernel_keyvalue_tl
-\cs_new_protected:Npn \elkernel_set_arg_to_keyvalue:Nnn #1#2#3
+\cs_new_protected:Npn \elkernel_arg_to_keyvalue:Nnn #1#2#3
   {
     \__elkernel_arg_to_keyvalue:nn {#2} {#3}
     \tl_set_eq:NN #1 \l__elkernel_keyvalue_tl

@@ -18,7 +18,7 @@
 % lt3ekeys.tex and lt3ekeys-usrguide-cn.tex.
 %
 \NeedsTeXFormat{LaTeX2e}[2023/06/01]
-\ProvidesExplPackage{lt3ekeyscmd}{2024/03/18}{v0.2}{define a command}
+\ProvidesExplPackage{lt3ekeyscmd}{2024/03/24}{v0.2b}{define a command}
 \RequirePackage{lt3ekeys-collectn}
 
 \seq_new:N \l__ekeys_restore_seq 
@@ -26,6 +26,9 @@
 \cs_new_protected:Npn \__ekeys_store:x { \seq_push:Nx \l__ekeys_restore_seq }
 \cs_new_protected:Npn \__ekeys_restore:
   { \seq_pop:NNT \l__ekeys_restore_seq \l__ekeys_restore_tl { \l__ekeys_restore_tl } }
+\cs_new_protected:Npn \__ekeys_use_clear:N #1
+  { \exp_after:wN \tl_clear:N \exp_after:wN #1 #1 }
+\cs_generate_variant:Nn \__ekeys_use_clear:N { c }
 
 \cs_new_protected:Npn \__ekeys_toks_new:N #1
   {
@@ -77,7 +80,7 @@
   { \__ekeys_use_none_delimit_by_q_stop:n }
 
 
-\tex_chardef:D \l__ekeys_max_args_int 9~ 
+\int_const:Nn \l__ekeys_max_args_int { 9 }
 \int_new:N \l__ekeys_cmd_arg_int 
 \int_new:N \l__ekeys_cmd_m_args_int
 \int_new:N \g__ekeys_cmd_argid_int % global int for all cmd 
@@ -89,6 +92,7 @@
 \tl_new:N \l__ekeys_cmd_type_tl
 \bool_new:N \l_ekeys_cmd_defaults_bool
 
+\tl_new:N \g__ekeys_cmd_tmp_tl
 \tl_new:N \l__ekeys_cmd_tmp_tl
 \tl_new:N \l__ekeys_cmd_tmpa_tl
 \tl_new:N \l__ekeys_cmd_tmpn_tl
@@ -134,7 +138,7 @@
         \tl_clear:N \l__ekeys_cmd_grab_tl
         \int_gincr:N \g__ekeys_nested_level_int
         \tl_gclear_new:c 
-          { l__ekeys_cmd/declare-after/ \int_use:N \g__ekeys_nested_level_int }
+          { g__ekeys_cmd/declare-after/ \int_use:N \g__ekeys_nested_level_int }
         \exp_args:Nc \elkernel_tl_set:Nx 
           { \l__ekeys_cmd_str \c_space_tl saved~aux~(ekeys) }
           { 
@@ -163,8 +167,8 @@
               }
               { \exp_not:o \l__ekeys_cmd_grab_tl }
           }
-        \tl_use:c 
-          { l__ekeys_cmd/declare-after/ \int_use:N \g__ekeys_nested_level_int }
+        \__ekeys_use_clear:c
+          { g__ekeys_cmd/declare-after/ \int_use:N \g__ekeys_nested_level_int }
         \int_gdecr:N \g__ekeys_nested_level_int
       }
     \group_align_safe_end:
@@ -174,14 +178,13 @@
 \cs_new_protected:Npn \ekeys_cmd_after_declare:n
   {
     \tl_gput_right:cn
-      { l__ekeys_cmd/declare-after/ \int_use:N \g__ekeys_nested_level_int } 
+      { g__ekeys_cmd/declare-after/ \int_use:N \g__ekeys_nested_level_int } 
   }
 \cs_new_protected:Npn \ekeys_cmd_after_declare:e
   {
     \tl_gput_right:cx
-      { l__ekeys_cmd/declare-after/ \int_use:N \g__ekeys_nested_level_int } 
+      { g__ekeys_cmd/declare-after/ \int_use:N \g__ekeys_nested_level_int } 
   }
-\cs_generate_variant:Nn \ekeys_cmd_after_declare:n { e }
 
 \cs_new_protected:Npn \__ekeys_cmd_add_undefine:Nx #1#2
   {
@@ -641,9 +644,14 @@
       }
     \__ekeys_cmd_type_W_index:nn 
   }
+\cs_new_protected:Npn \__ekeys_cmd_type_v:w 
+  {
+    \__ekeys_cmd_chk_args:NN v v 
+    \__ekeys_cmd_flush_m_args:
+    \__ekeys_cmd_add_grab:n { \__ekeys_cmd_grab_v:Nww \c_true_bool }
+  }
 %new: p, P, w, W
-%unsupported: v, b, +, !, >, =
-\cs_new_protected:Npn \__ekeys_cmd_type_v:w { \__ekeys_cmd_unimpl:N v }
+%unsupported: b, +, !, >, =
 \cs_new_protected:Npn \__ekeys_cmd_type_b:w { \__ekeys_cmd_unimpl:N b }
 \cs_new_protected:cpn { __ekeys_cmd_type_+:w } { \__ekeys_cmd_unimpl:N + }
 \cs_new_protected:cpn { __ekeys_cmd_type_!:w } { \__ekeys_cmd_unimpl:N ! }
@@ -1026,7 +1034,7 @@
     \group_begin:
     \cs_set_protected:Npn \__ekeys_cmd_grab_W_finalize:
       {
-        \tl_gclear:N \l__ekeys_cmd_tmp_tl
+        \tl_gclear:N \g__ekeys_cmd_tmp_tl
         \__ekeys_cmd_grab_W_add_args:nnn #1 \q__ekeys_mark \q__ekeys_mark \q__ekeys_mark
           \__ekeys_break_point:n \group_end:
         \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code:
@@ -1065,14 +1073,21 @@
         \__ekeys_break:n 
           { 
             \use_ii_i:nn 
-              { \tl_put_right:No \l__ekeys_cmd_args_tl \l__ekeys_cmd_tmp_tl } 
+              { \tl_put_right:No \l__ekeys_cmd_args_tl \g__ekeys_cmd_tmp_tl } 
           } 
       } 
       { }
-    \tl_gput_right:Nx \l__ekeys_cmd_tmp_tl { { \exp_not:v { __ekeys_cmd_W_ #1 ~arg } } }
+    \tl_gput_right:Nx \g__ekeys_cmd_tmp_tl { { \exp_not:v { __ekeys_cmd_W_ #1 ~arg } } }
     \__ekeys_cmd_grab_W_add_args:nnn 
   }
 \cs_new_protected:Npn \__ekeys_cmd_grab_W_finalize: { }
+\cs_new_protected:Npn \__ekeys_cmd_grab_v:Nww #1#2 \__ekeys_cmd_run_code:
+  {
+    \tl_set:Nn \l__ekeys_cmd_signature_tl { #2 \__ekeys_cmd_run_code: }
+    \bool_set:Nn \l_elkernel_long_v_bool {#1}
+    \elkernel_collect_verb:Nnw \l__ekeys_cmd_tmp_tl
+      { \__ekeys_cmd_add_arg:o \l__ekeys_cmd_tmp_tl \l__ekeys_cmd_signature_tl }
+  }
 \cs_new_protected:Npn \__ekeys_cmd_add_arg:n #1
   { \tl_put_right:Nn \l__ekeys_cmd_args_tl { {#1} } }
 \cs_new_protected:Npn \__ekeys_cmd_add_arg:o #1

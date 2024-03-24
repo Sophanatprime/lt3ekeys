@@ -18,7 +18,7 @@
 % lt3ekeys.tex and lt3ekeys-usrguide-cn.tex.
 %
 \NeedsTeXFormat{LaTeX2e}[2023/06/01]
-\ProvidesExplPackage{lt3ekeysext}{2024/03/18}{v0.2}{entensions of lt3ekeys}
+\ProvidesExplPackage{lt3ekeysext}{2024/03/24}{v0.2b}{entensions of lt3ekeys}
 \RequirePackage{lt3ekeyscmd}
 
 \bool_new:N \l__ekeys_cmd_nested_bool
@@ -873,7 +873,7 @@
             \l__ekeys_cmd_fn_tl ##1 ##2 \q__ekeys_mark \q__ekeys_stop
           }
         \cs_set_protected:cpn { \__ekeys_cmd_arg_n: - } 
-          { \tl_gclear:N \l__ekeys_cmd_tmp_tl }
+          { \tl_gclear:N \g__ekeys_cmd_tmp_tl }
         \__ekeys_cmd_add_undefine:nx \l__ekeys_cmd_str
           { 
             \use:c \__ekeys_cmd_arg_n: 
@@ -890,7 +890,7 @@
             \exp_not:n 
               {
                 \use_ii_i:nn 
-                  { \tl_put_right:No \l__ekeys_cmd_args_tl \l__ekeys_cmd_tmp_tl }
+                  { \tl_put_right:No \l__ekeys_cmd_args_tl \g__ekeys_cmd_tmp_tl }
               }
           }
         \tl_put_right:Nx \l__ekeys_cmd_grab_tl
@@ -916,7 +916,7 @@
               {
                 \bool_if:NTF \l__ekeys_cmd_raw_bool
                   {
-                    \tl_gput_right:Nx \exp_not:N \l__ekeys_cmd_tmp_tl
+                    \tl_gput_right:Nx \exp_not:N \g__ekeys_cmd_tmp_tl
                       { { 
                         \exp_not:n { \exp_not:N #2 }
                         { \exp_not:N \exp_not:o \exp_not:c { __ekeys_cmd_W_ #1 ~arg } }
@@ -924,12 +924,12 @@
                       } }
                   }
                   {
-                    \tl_gput_right:Nx \exp_not:N \l__ekeys_cmd_tmp_tl
+                    \tl_gput_right:Nx \exp_not:N \g__ekeys_cmd_tmp_tl
                       { { \exp_not:N \exp_not:o \exp_not:c { __ekeys_cmd_W_ #1 ~arg } } }
                   }
               }
               { 
-                \tl_gput_right:Nn \exp_not:N \l__ekeys_cmd_tmp_tl 
+                \tl_gput_right:Nn \exp_not:N \g__ekeys_cmd_tmp_tl 
                   { { \exp_not:o {#5} } }
               }
           }
@@ -982,7 +982,7 @@
     \group_begin:
     \cs_set_protected:Npn \__ekeys_cmd_grab_W_finalize:
       {
-        \tl_gclear:N \l__ekeys_cmd_tmp_tl
+        \tl_gclear:N \g__ekeys_cmd_tmp_tl
         \__ekeys_cmd_grab_W_add_args:nnn #1 \q__ekeys_mark \q__ekeys_mark \q__ekeys_mark
           \__ekeys_break_point:n \group_end:
         \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code:

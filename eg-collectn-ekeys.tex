@@ -1,15 +1,33 @@
 % !TEX options=--synctex=1 --shell-escape --interaction=nonstopmode %DOCFILE%
 % !TEX program=xelatex
-% \DocumentMetadata{}
+\DocumentMetadata{uncompress}
 \documentclass[openany]{book}
 \InputIfFileExists{eg-config.tex}{}{}
 \usepackage{amsmath,amssymb}
 \PassOptionsToPackage{silent}{xeCJK}
-\usepackage{ctex}
-\usepackage{xunicode,xeCJKfntef}
-\edef\UD{\string _}
 \usepackage{xunicode-addon}
+\usepackage{ctex}
 \usepackage[library={ref,box,bnf,doc}]{cus}
+\ifdefined\directlua
+  \makeatletter
+  \let\xeCJKVerbAddon\empty
+  % 让导入的 pdf 有正确的超链接。编译很慢！！仅限于 luatex
+  \IfPDFManagementActiveTF
+  {\cus@getgraphicsname\@curr@file{cus-cn.pdf}
+    \ifx\@curr@file\relax\else
+      \filename@parse\@curr@file
+      \edef\@curr@file{\filename@area\filename@base}
+      \directlua{
+        require("newpax")
+        newpax.writenewpax("\@curr@file")
+      }
+    \fi
+    \usepackage{newpax}
+    \newpaxsetup{usefileattributes=true}
+  }{}\makeatother
+\else \usepackage{xeCJKfntef}
+\fi
+\edef\UD{\string _}
 \newcommand{\hook}{\cmd[module=hook point,type=hook point]}
 \setuplayout{paper=a4,hmargin=1.7cm,top=2cm,bottom=1.5cm,
   hfoffset=0pt,nomarginpar,
@@ -473,7 +491,7 @@
 
 本节介绍的是可获取某些（某个）记号之前的所有内容的参数类型：\texttt l、\texttt u、\texttt U。
 
-\texttt l 的 \meta{full spec} 为 \verb|u|。它获取的是字符码为 123，类别码为 1 
+\texttt l 的 \meta{full spec} 为 \verb|l|。它获取的是字符码为 123，类别码为 1 
 的记号（也就是通常的左括号 \verb|{|）之前的所有内容。\iffalse}\fi % for latex-workshop
 如果不存在这样的左括号，那么将会出错。
 
@@ -495,14 +513,15 @@
 \section{判断记号是否出现——\texttt t、\texttt p、\texttt P、\texttt k、\texttt T}
 
 本节介绍的是用来判断记号是否出现的参数类型：\texttt s、\texttt t、\texttt p、\texttt P、
-\texttt k。其中 \texttt s 和 \texttt t 已经在\cref{sec:fq-used}介绍过了。
+\texttt k、\texttt t、\texttt T。
+其中 \texttt s 和 \texttt t 已经在\cref{sec:fq-used}介绍过了。
 
 \texttt p 的 \meta{full spec} 为 \verb|p|\marg{tokens}，
 \texttt P 的 \meta{full spec} 为 \verb|P|\marg{tokens}\marg{indexed}。
 它们用来判断 \meta{tokens} 中的某一个记号是否出现，如果出现了，
-对于 \texttt p，其实参为该记号在 \meta{tokens} 中的位置，若没有出现实参为 0；
+对于 \texttt p，其实参为该记号在 \meta{tokens} 中的位置，若没有出现则实参为 0；
 对于 \texttt P，其实参为用该记号在 \meta{tokens} 中的位置索引 \meta{indexed}，
-\meta{indexed} 的长度为 \meta{tokens} 的长度加一，即 \texttt p 的完整 
+\meta{indexed} 的长度为 \meta{tokens} 的长度加一，即 \texttt P 的完整 
 \meta{full spec} 为：
 \verb|P| \texttt{\{\meta{token_1}\meta{token_2}...\meta{token_n}\}
 \{\marg{entry_0}\marg{entry_1}\marg{entry_2}...\marg{entry_n}\}}。
@@ -1092,7 +1111,7 @@ $ \foo<a|b> $\quad $ \foo\displaystyle<\sum|\prod> $.
 \begin{tabular}{cll>{\ttfamily}l}
 \toprule
 \TH{类别} & \TH{含义} & \TH{Meaning} & \TH{常见值} \\ \midrule
-\N8 & 下标 & Subscript & \V\_ \\
+\N8 & 下标 & Subscript & \V_ \\
 \N9 & 忽略的字符 & Ignored character & \BNFN{null} \\
 \N10 & 空格 & Space & \textvisiblespace \\
 \N11 & 字母 & Letter & 26 个英文字母 \\
@@ -1110,6 +1129,6 @@ $ \foo<a|b> $\quad $ \foo\displaystyle<\sum|\prod> $.
 
 \IfGraphicsExists{cus-cn.pdf}{\section[=,float-barrier]{用法说明}\clearpage
   \usepagestyle{totalempty}
-  \IterateInteger[81][1]{96}{\newpage\null\foregroundpicture[page=#1]{cus-cn.pdf}}}{}
+  \IterateInteger[81][1]{97}{\newpage\null\foregroundpicture[page=#1]{cus-cn.pdf}}}{}
 
 \end{document}
