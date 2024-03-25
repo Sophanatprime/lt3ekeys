@@ -1,30 +1,18 @@
 % !TEX options=--synctex=1 --shell-escape --interaction=nonstopmode %DOCFILE%
 % !TEX program=xelatex
-\DocumentMetadata{uncompress}
+\DocumentMetadata{}
 \documentclass[openany]{book}
 \InputIfFileExists{eg-config.tex}{}{}
 \usepackage{amsmath,amssymb}
 \PassOptionsToPackage{silent}{xeCJK}
 \usepackage{xunicode-addon}
 \usepackage{ctex}
-\usepackage[library={ref,box,bnf,doc}]{cus}
+\usepackage{graphicx,xcolor}
+\usepackage[library={ref,box,bnf,doc,pdf}]{cus}
+\graphicspath{{./image}{../image}{../}}
+\cussetup[pdf]{pax={cus-cn},redefine}
 \ifdefined\directlua
-  \makeatletter
   \let\xeCJKVerbAddon\empty
-  % 让导入的 pdf 有正确的超链接。编译很慢！！仅限于 luatex
-  \IfPDFManagementActiveTF
-  {\cus@getgraphicsname\@curr@file{cus-cn.pdf}
-    \ifx\@curr@file\relax\else
-      \filename@parse\@curr@file
-      \edef\@curr@file{\filename@area\filename@base}
-      \directlua{
-        require("newpax")
-        newpax.writenewpax("\@curr@file")
-      }
-    \fi
-    \usepackage{newpax}
-    \newpaxsetup{usefileattributes=true}
-  }{}\makeatother
 \else \usepackage{xeCJKfntef}
 \fi
 \edef\UD{\string _}
@@ -37,8 +25,7 @@
 \sethead [r] {Page -- \thepage}
 \setfoot {}
 \setheadrulewidth {1pt}
-\usepackage{graphicx,xcolor}
-\graphicspath{{./image}{../image}{../}}
+% \usepackage{pdfpages}
 \usepackage{unicode-math}
 % \setmainfont{texgyrepagella}[
 %   Extension      = .otf,
@@ -1129,6 +1116,7 @@ $ \foo<a|b> $\quad $ \foo\displaystyle<\sum|\prod> $.
 
 \IfGraphicsExists{cus-cn.pdf}{\section[=,float-barrier]{用法说明}\clearpage
   \usepagestyle{totalempty}
-  \IterateInteger[81][1]{97}{\newpage\null\foregroundpicture[page=#1]{cus-cn.pdf}}}{}
+  \IterateInteger[81][1]{97}{\newpage\null\foregroundpicture[page=#1]{cus-cn.pdf}}
+}{}
 
 \end{document}

@@ -34,6 +34,7 @@
 \cs_new_eq:NN \elkernel_int_expr:w \tex_numexpr:D
 \cs_new_eq:NN \elkernel_dim_expr:w \tex_dimexpr:D
 \cs_new_eq:NN \elkernel_mdfive:w \tex_mdfivesum:D
+\cs_new_protected:Npn \elkernel_input:n #1 { \tex_input:D {#1} }
 
 \quark_new:N \q__elkernel_recursion_stop
 \quark_new:N \q__elkernel_recursion_tail
