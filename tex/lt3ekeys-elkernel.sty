@@ -17,7 +17,7 @@
 % lt3ekeysext.sty, lt3ekeys-elkernel.sty, lt3ekeys-collectn.sty,
 % lt3ekeys.tex and lt3ekeys-usrguide-cn.tex.
 %
-\ProvidesExplPackage{lt3ekeys-elkernel}{2024/03/24}{v0.2b}{export latex and latex3 kernel function}
+\ProvidesExplPackage{lt3ekeys-elkernel}{2024/03/31}{v0.2c}{export latex and latex3 kernel function}
 
 \cs_new_eq:NN \elkernel_cmd_if_xparse:NTF \__kernel_cmd_if_xparse:NTF
 \int_new:N \g_elkernel_prg_map_int
@@ -40,6 +40,11 @@
 \quark_new:N \q__elkernel_recursion_tail
 \elkernel_quark_new_test:N \__elkernel_if_recursion_tail_stop_do:Nn
 
+\prg_new_protected_conditional:Npnn \elkernel_if_date_at_least:nn #1#2 { T, F, TF }
+  { 
+    \@ifl@t@r { \elkernel_exp:w {#1} } { \elkernel_exp:w {#2} } 
+      { \prg_return_true: } { \prg_return_false: }
+  }
 
 \str_new:N \l__elkernel_filepath_str
 \str_new:N \l__elkernel_filename_str
