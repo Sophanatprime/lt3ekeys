@@ -18,7 +18,7 @@
 % lt3ekeys.tex and lt3ekeys-usrguide-cn.tex.
 %
 \NeedsTeXFormat{LaTeX2e}[2023/06/01]
-\ProvidesExplPackage{lt3ekeyscmd}{2024/03/31}{v0.2c}{define a command}
+\ProvidesExplPackage{lt3ekeyscmd}{2024/04/14}{v0.2d}{define a command}
 \RequirePackage{lt3ekeys-collectn}
 
 \seq_new:N \l__ekeys_restore_seq 
@@ -1086,7 +1086,11 @@
     \tl_set:Nn \l__ekeys_cmd_signature_tl { #2 \__ekeys_cmd_run_code: }
     \bool_set:Nn \l_elkernel_long_v_bool {#1}
     \elkernel_collect_verb:Nnw \l__ekeys_cmd_tmp_tl
-      { \__ekeys_cmd_add_arg:o \l__ekeys_cmd_tmp_tl \l__ekeys_cmd_signature_tl }
+      { 
+        \__ekeys_cmd_add_arg:e 
+          { \exp_args:No \elkernel_str_to_other_fast:n \l__ekeys_cmd_tmp_tl }
+        \l__ekeys_cmd_signature_tl 
+      }
   }
 \cs_new_protected:Npn \__ekeys_cmd_add_arg:n #1
   { \tl_put_right:Nn \l__ekeys_cmd_args_tl { {#1} } }

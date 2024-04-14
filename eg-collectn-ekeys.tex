@@ -8,7 +8,7 @@
 \usepackage{xunicode-addon}
 \usepackage{ctex}
 \usepackage{graphicx,xcolor}
-\usepackage[library={ref,box,bnf,doc,pdf}]{cus}
+\usepackage[library={ref,box,bnf,doc={no-index-file},pdf}]{cus}
 \graphicspath{{./image}{../image}{../}}
 \cussetup[pdf]{pax={cus-cn},redefine}
 \ifdefined\directlua
@@ -364,6 +364,7 @@
   \item \texttt s 和 \texttt t 参数类型及带定界符的参数类型，还可以通过加上 \texttt\& 修饰符，使得其实参为等价的原始输入，而不是布尔值或移除掉定界符的结果。
   \item \texttt e 和 \texttt E 参数类型，在 \veta{document-cmd} 其中的 \meta{tokens} 是不能重复的，但 \veta{ekeys-cmd} 却可以。
   \item \texttt g 和 \texttt G 参数类型，在寻找其参数时，左括号既可以是显式的，又可以是隐式的；且若没有发现左括号，而发现的是 \tn{relax}（或 \tn{ifx} 判断与之相等），则会移除这个 \tn{relax} 后再继续寻找之后的参数。这样在实际使用时，可以用 \tn{relax} 阻止 \texttt G 参数获取实参，又不会干扰其它参数获取实参；
+  \item \texttt{v} 参数类型，对于 \veta{document-cmd}，其实参的类别码为 10、12、13 之一，而 \veta{ekeys-cmd} 其实参中字符的类别码均为 12（在 \pupTeX 引擎下，仅 Unicode 编码小于等于 255 的字符有此特性）；
   \item “处理器” vs. “预处理器”。与 \veta{document-cmd} 对偶的，\veta{ekeys-cmd} 使用的是预处理器机制。且 \veta{document-cmd} 的处理器不能是 \veta{document-cmd}，换句话说，\veta{document-cmd} 不能嵌套。\veta{ekeys-cmd} 则没有这个限制。
 \end{itemize}
 
@@ -472,6 +473,18 @@
 
 \DeclareEKeysCollector*\fbb { m m @o @d() m m m m m m m } \tmp {\meaning\tmp.}
 \fbb 12 [[B]](b(b)) 56789ABCD.
+\end{examcode}
+
+\section{以纯文本的形式读取参数——\texttt v}
+
+\texttt{v} 以纯文本的形式读取参数，它要读取的参数不能做为另一个命令的参数
+（不能是 tokenized）。它的实参是一些类别码为 12 的字符
+（在 \pupTeX 引擎下，仅 Unicode 编码小于等于 255 的字符有此特性）。
+
+\begin{examcode}{}
+\DeclareEKeysCommand \faa { v } {开始#1结束}
+\faa {@!#$ab`";}
+\faa |@!#$ab`";|
 \end{examcode}
 
 \section{获取某些记号之前的内容——\texttt l、\texttt u、\texttt U}
@@ -698,6 +711,8 @@
 
 有几个预定义的扫描器：
 \begin{itemize}
+  \item \texttt{norelax}，移除一个 \tn{relax}，在向后寻找这个 \tn{relax} 时\emph{忽略}空格；
+  \item \texttt{norelax!}，移除一个 \tn{relax}，在向后寻找这个 \tn{relax} 时\emph{不忽略}空格；
   \item \texttt ?\meta{preprocessor spec}，参数预处理器。\meta{preprocessor spec} 用法为：
   \begin{itemize}
     \item \marg{ekeys-cmd arg spec}，使用 \meta{ekeys-cmd arg spec} 获取后面的参数，转化为带花括号的标准参数；

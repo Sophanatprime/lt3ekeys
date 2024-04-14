@@ -18,7 +18,7 @@
 % lt3ekeys.tex and lt3ekeys-usrguide-cn.tex.
 %
 \NeedsTeXFormat{LaTeX2e}[2023/06/01]
-\ProvidesExplPackage{lt3ekeysext}{2024/03/31}{v0.2c}{entensions of lt3ekeys}
+\ProvidesExplPackage{lt3ekeysext}{2024/04/14}{v0.2d}{entensions of lt3ekeys}
 \RequirePackage{lt3ekeyscmd}
 
 \bool_new:N \l__ekeys_cmd_nested_bool
@@ -1406,3 +1406,29 @@
   { }
 \cs_new:Npn \__ekeys_cmd_scanner_define_n:
   { \l__ekeys_cmd_str \c_space_tl scanner-define\int_use:N \g__ekeys_cmd_argid_int }
+
+\ekeys_cmd_new_scanner:nnpn { norelax } { 0 }
+  { 
+    \tl_clear:N \l__ekeys_cmd_scanner_norelax_tl
+    \peek_after:Nw \__ekeys_cmd_scanner_norelax: 
+  }
+\tl_new:N \l__ekeys_cmd_scanner_norelax_tl
+\cs_new:Npn \__ekeys_cmd_scanner_norelax:
+  {
+    \token_if_eq_meaning:NNTF \l_peek_token \scan_stop:
+      { \exp_after:wN \ekeys_cmd_scanner_end: \use_none:n }
+      {
+        \token_if_eq_meaning:NNTF \l_peek_token \c_space_token
+          {
+            \tl_put_right:Nn \l__ekeys_cmd_scanner_norelax_tl { ~ }
+            \peek_after:Nw \__ekeys_cmd_scanner_norelax:
+          }
+          { \exp_after:wN \ekeys_cmd_scanner_end: \l__ekeys_cmd_scanner_norelax_tl }
+      }
+  }
+\ekeys_cmd_new_scanner:nnpn { norelax! } { 0 }
+  {
+    \peek_meaning:NTF \scan_stop:
+      { \exp_after:wN \ekeys_cmd_scanner_end: \use_none:n }
+      { \ekeys_cmd_scanner_end: }
+  }
