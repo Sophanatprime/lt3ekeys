@@ -196,6 +196,16 @@
     \exp_after:wN #1 \exp_after:wN #2 \exp_after:wN { \if_false: } \fi:
   }
 
+\cs_generate_variant:Nn \tl_const:Nn { No }
+\exp_args:NNo \tl_const:No \c_elkernel_active_space_tl
+  { \char_generate:nn { `\  } { 13 } }
+\exp_args:NNo \tl_const:No \c_elkernel_active_newline_tl
+  { \char_generate:nn { `\^^J } { 13 } }
+\exp_args:NNo \tl_const:No \c_elkernel_active_endline_tl
+  { \char_generate:nn { `\^^M } { 13 } }
+\tl_const:Nx \c_elkernel_scan_marker_tl
+  { \char_generate:nn { `\  } { 11 } \exp_not:o \c_elkernel_active_space_tl }
+
 \tl_new:N \l__elkernel_v_tl
 \tl_new:N \l__elkernel_v_action_tl
 \bool_new:N \l_elkernel_long_v_bool
@@ -334,7 +344,12 @@
     \tl_put_right:Nx \l__elkernel_v_tl
       {
         \token_if_active:NTF #1
-          { \exp_not:N #1 } { \token_to_str:N #1 }
+          { \exp_not:N #1 }
+          {
+            \int_compare:nNnTF { `#1 } = { \tex_endlinechar:D }
+              { \exp_not:o \c_elkernel_active_endline_tl }
+              { \token_to_str:N #1 }
+          }
       }
   }
 \cs_new_protected:Npn \__elkernel_grab_v_token_if_char:NTF #1

@@ -364,7 +364,7 @@
   \item \texttt s 和 \texttt t 参数类型及带定界符的参数类型，还可以通过加上 \texttt\& 修饰符，使得其实参为等价的原始输入，而不是布尔值或移除掉定界符的结果。
   \item \texttt e 和 \texttt E 参数类型，在 \veta{document-cmd} 其中的 \meta{tokens} 是不能重复的，但 \veta{ekeys-cmd} 却可以。
   \item \texttt g 和 \texttt G 参数类型，在寻找其参数时，左括号既可以是显式的，又可以是隐式的；且若没有发现左括号，而发现的是 \tn{relax}（或 \tn{ifx} 判断与之相等），则会移除这个 \tn{relax} 后再继续寻找之后的参数。这样在实际使用时，可以用 \tn{relax} 阻止 \texttt G 参数获取实参，又不会干扰其它参数获取实参；
-  \item \texttt{v} 参数类型，对于 \veta{document-cmd}，其实参的类别码为 10、12、13 之一，而 \veta{ekeys-cmd} 其实参中字符的类别码均为 12（在 \pupTeX 引擎下，仅 Unicode 编码小于等于 255 的字符有此特性）；
+  \item \texttt{v} 参数类型，对于 \veta{document-cmd}，其实参的类别码为 10、12、13 之一，而 \veta{ekeys-cmd} 其实参所含字符的类别码的可能值为 10、12、13（在 \pupTeX 引擎下，仅 Unicode 编码小于等于 255 的字符有此特性）；且 \texttt{\^{}\^{}M} 的类别码为 13；
   \item “处理器” vs. “预处理器”。与 \veta{document-cmd} 对偶的，\veta{ekeys-cmd} 使用的是预处理器机制。且 \veta{document-cmd} 的处理器不能是 \veta{document-cmd}，换句话说，\veta{document-cmd} 不能嵌套。\veta{ekeys-cmd} 则没有这个限制。
 \end{itemize}
 
@@ -478,8 +478,9 @@
 \section{以纯文本的形式读取参数——\texttt v}
 
 \texttt{v} 以纯文本的形式读取参数，它要读取的参数不能做为另一个命令的参数
-（不能是 tokenized）。它的实参是一些类别码为 12 的字符
+（不能是 tokenized）。它的实参所含字符的类别码的可能值为 10、12、13
 （在 \pupTeX 引擎下，仅 Unicode 编码小于等于 255 的字符有此特性）。
+且 \texttt{\^{}\^{}M} 的类别码为 13，默认情况下，它导致换行。
 
 \begin{examcode}{}
 \DeclareEKeysCommand \faa { v } {开始#1结束}

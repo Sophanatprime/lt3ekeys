@@ -1087,8 +1087,7 @@
     \bool_set:Nn \l_elkernel_long_v_bool {#1}
     \elkernel_collect_verb:Nnw \l__ekeys_cmd_tmp_tl
       { 
-        \__ekeys_cmd_add_arg:e 
-          { \exp_args:No \elkernel_str_to_other_fast:n \l__ekeys_cmd_tmp_tl }
+        \__ekeys_cmd_add_arg:o { \l__ekeys_cmd_tmp_tl }
         \l__ekeys_cmd_signature_tl 
       }
   }
