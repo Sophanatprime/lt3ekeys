@@ -1130,10 +1130,9 @@ $ \foo<a|b> $\quad $ \foo\displaystyle<\sum|\prod> $.
 宏包，中日韩字符的类别码也是 11。
 \end{table}
 
-% \let\includegraphics\includegraphicx
 \IfGraphicsExists{cus-cn.pdf}{\section[=,float-barrier]{用法说明}\clearpage
   \usepagestyle{totalempty}
-  \IterateInteger[88][1]{104}{\newpage\null\foregroundpicture[page=#1]{cus-cn.pdf}}
+  \IterateInteger[91][1]{108}{\newpage\null\foregroundpicture[page=#1]{cus-cn.pdf}}
 }{}
 
 \end{document}

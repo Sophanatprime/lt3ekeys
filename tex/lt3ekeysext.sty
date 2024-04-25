@@ -18,7 +18,7 @@
 % lt3ekeys.tex and lt3ekeys-usrguide-cn.tex.
 %
 \NeedsTeXFormat{LaTeX2e}[2023/06/01]
-\ProvidesExplPackage{lt3ekeysext}{2024/04/14}{v0.2d}{entensions of lt3ekeys}
+\ProvidesExplPackage{lt3ekeysext}{2024/04/25}{v0.2e}{entensions of lt3ekeys}
 \RequirePackage{lt3ekeyscmd}
 
 \bool_new:N \l__ekeys_cmd_nested_bool
@@ -500,7 +500,7 @@
     \tl_set:Nn \l__ekeys_cmd_signature_tl {#4}
     \__ekeys_peek_nonspace:NTF #1
       { \__ekeys_cmd_grab_D_nested_aux:NN #1#2 }
-      { \__ekeys_cmd_grab_R_aux:NNn #1 #2 {#3} }
+      { \__ekeys_cmd_grab_R_aux:NNn #1 #2 { \exp_not:o {#3} } }
   }
 \cs_new_protected:Npn \__ekeys_cmd_grab_R_nested_raw:NNnww 
   #1#2#3 #4 \__ekeys_cmd_run_code: 
@@ -508,10 +508,7 @@
     \tl_set:Nn \l__ekeys_cmd_signature_tl {#4}
     \__ekeys_peek_nonspace:NTF #1
       { \__ekeys_cmd_grab_D_nested_raw_aux:NN #1#2 }
-      { 
-        \__ekeys_cmd_grab_R_aux:NNn #1 #2 
-          { \exp_not:N #1 \exp_not:o {#3} \exp_not:N #2 } 
-      }
+      { \__ekeys_cmd_grab_R_aux:NNn #1 #2 { \exp_not:o {#3} } }
   }
 \cs_new_protected:Npn \__ekeys_cmd_grab_R_aux:NNn #1#2#3
   {
@@ -525,10 +522,7 @@
     \tl_set:Nn \l__ekeys_cmd_signature_tl {#4}
     \__ekeys_peek_nonspace:NTF #1
       { \__ekeys_cmd_grab_D_raw_aux:NN #1#2 }
-      { 
-        \__ekeys_cmd_add_arg:e { \exp_not:o {#3} }
-        \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code: 
-      }
+      { \__ekeys_cmd_add_arg:o {#3} \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code: }
   }
 \cs_new_protected:Npn \__ekeys_cmd_grab_D_nested:NNnww #1#2#3 #4 \__ekeys_cmd_run_code:
   {
@@ -543,10 +537,7 @@
     \tl_set:Nn \l__ekeys_cmd_signature_tl {#4}
     \__ekeys_peek_nonspace:NTF #1
       { \__ekeys_cmd_grab_D_nested_raw_aux:NN #1#2 }
-      { 
-        \__ekeys_cmd_add_arg:e { \exp_not:N #1 { \exp_not:o {#3} } \exp_not:N #2 } 
-        \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code: 
-      }
+      { \__ekeys_cmd_add_arg:o {#3} \l__ekeys_cmd_signature_tl \__ekeys_cmd_run_code: }
   }
 \cs_new_protected:Npn \__ekeys_cmd_grab_D_raw_aux:NN #1#2
   {
