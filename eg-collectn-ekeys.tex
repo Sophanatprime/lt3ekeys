@@ -52,7 +52,7 @@
   UprightFont    = *btl,
   BoldFont       = *tb,
   ItalicFont     = *bto,
-  BoldItalicFont = *tx,
+  BoldItalicFont = *st,
   HyphenChar     = None]
 \setmathfont{XITS Math}
 \usepackage{array,booktabs,tabularx,makecell}
@@ -65,7 +65,20 @@
 \usepackage[colorlinks]{hyperref}
 \usepackage[numbered]{bookmark}
 \usepackage{nameref,varioref,cleveref}
-\usepackage[many,listings,minted]{tcolorbox}
+\usepackage{fancyvrb}
+\usepackage[many,listings]{tcolorbox}
+\usepackage{texhigh}
+\tcbset{l3code/.style={texhigh use ctab={latex3code}}}
+\SetKeys[texhigh]{
+  font=\ttfamily\xeCJKsetup{CJKecglue={\hskip 0pt plus 0.08\baselineskip}},
+  config-file=ekeys.texhigh.cfg,
+}
+\makeatletter
+\THSetClassCS{cus.ekeys.doc}{{\color{red5}\bfseries#1\itshape#2}}
+\THSetClassCS{cus.ekeys.l3}{{\color{red5}\bfseries#1\itshape#2}}
+\THSetClassCS{cus.collectn}{{\color{red5}\bfseries#1\itshape#2}}
+\THSetClassCS{cus.elkernel}{{\color{red5}\bfseries#1\itshape#2}}
+\makeatother
 \newcounter{example}
 \newtcblisting[use counter=example, number format=\arabic, crefname={代码}{代码}]
   {examcode}[2][]{listing and text, 
@@ -83,11 +96,7 @@
   coltitle=blue!90!black, fonttitle=\bfseries,
   before skip balanced=2bp plus .5\baselineskip,
   after skip balanced=2bp plus .5\baselineskip,
-  % listing options={style=tcblatex, basicstyle=\normalsize\ttfamily},
-  listing engine=minted,minted style=colorful,
-  minted language=tex,
-  minted options={tabsize=2,fontsize=\normalsize,autogobble,mathescape,
-    xleftmargin=0pt,xrightmargin=0pt},
+  listing engine=texhigh,
   breakable,
   #1
 }
@@ -792,7 +801,7 @@ $ \fmm ; \fmm _a^b; \fmm _a; \fmm ^b; $
 还可在 \meta{initial action} 中设置 \cs{l_ekeys_cmd_scanner_args_int} 来修改 
 \meta{parameter number}。添加的参数数目必须和该整数值一致。
 
-\begin{examcode}{}
+\begin{examcode}[l3code]{}
 \ExplSyntaxOn
 \ekeys_cmd_new_scanner:nnpn { my/scan-bra-ket } { 2 } <#1|#2>
   {
@@ -822,7 +831,7 @@ $ \foo<a|b> $\quad $ \foo<\sum|\prod> $
 \cs{ekeys_cmd_add_args:n} 和 \cs[break-at-any]{ekeys_cmd_scanner_end:}。
 如果某些情况下，不需要自动添加的 \cs{ekeys_cmd_add_args:n} 和 \cs{ekeys_cmd_scanner_end:}
 该怎么办呢？答案是在参数数字前面加上 \texttt{*}：
-\begin{examcode}[listing only]{}
+\begin{examcode}[listing only,l3code]{}
 \ExplSyntaxOn
 \DeclareEKeysCommand \foo { 
   K{ define {*2} {<#1|#2>} { \ekeys_cmd_add_args:n {{#1}{#2}}\ekeys_cmd_scanner_end: } } 
@@ -849,7 +858,7 @@ $ \foo<a|b> $\quad $ \foo<\sum|\prod> $
 
 假设我们想查看后面的那个记号是不是 \tn{relax}，借助 
 \cs{peek_meaning_remove:NTF} 可以这么做：
-\begin{examcode}{}
+\begin{examcode}[l3code]{}
 \ExplSyntaxOn
 \DeclareEKeysCommand \foo { 
   K{ define { 
@@ -865,7 +874,7 @@ $ \foo<a|b> $\quad $ \foo<\sum|\prod> $
 可以看到，在获取第一个参数之前，我们根据后面是不是跟着 \tn{relax} 来让它获得不同的值。
 
 这是预处理器不需要获取参数的情况，倘若需要获取参数，仍然可以用 \texttt{define} scanner：
-\begin{examcode}{}
+\begin{examcode}[l3code]{}
 \ExplSyntaxOn
 \DeclareEKeysCommand \foo {
   K{ define {-1} { #1#2 } { 
@@ -887,7 +896,7 @@ $ \foo<a|b> $\quad $ \foo<\sum|\prod> $
 
 \texttt? 预处理器指示符的用法 \texttt?\marg{preprocessor action}。
 \meta{preprocessor action} 通常是一个命令，它的定义中有一个 \cs{ekeys_cmd_scanner_end:}。
-\begin{examcode}{}
+\begin{examcode}[l3code]{}
 \ExplSyntaxOn
 % 它用来合并 () 和 [] 的键值选项
 \DeclareEKeysCommand \foopreprocessor { m @w{ () [] } }
@@ -972,7 +981,7 @@ $ \foo<a|b> $\quad $ \foo\displaystyle<\sum|\prod> $.
 \end{examcode}
 
 等价的方法是：
-\begin{examcode}[listing only]{}
+\begin{examcode}[listing only,l3code]{}
 \ExplSyntaxOn
 \ekeys_cmd_new_scanner:nnpn { my/scan-bra-ket } { 2 } <#1|#2>
   {
@@ -997,7 +1006,7 @@ $ \foo<a|b> $\quad $ \foo\displaystyle<\sum|\prod> $.
 而且在检测关键字是否出现时会自动展开后面的记号。\penalty-1000
 \cs{collectn_scan_keyword:NTF} 为我们提供了此功能。
 
-\begin{examcode}{}
+\begin{examcode}[l3code]{}
 \ExplSyntaxOn
 \newtoks \l__my_scan_nos_toks
 \collectn_set_keyword:Nn \c__my_scan_nos_tl { shipout }
@@ -1051,7 +1060,7 @@ $ \foo<a|b> $\quad $ \foo\displaystyle<\sum|\prod> $.
 下例定义了一个参数扫描器 \texttt{my/scan-whd}，用于捕获以关键字 
 \texttt{width}、\texttt{height}、\texttt{depth} 引导的长度。
 
-\begin{examcode}{}
+\begin{examcode}[l3code]{}
 \ExplSyntaxOn
 \dim_new:N \l__my_scan_whd_dim % 临时保存长度
 \seq_new:N \l__my_scan_whd_seq % 保存三个值，width,height,depth
