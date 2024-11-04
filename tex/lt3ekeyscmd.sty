@@ -63,11 +63,11 @@
 
 \cs_new:Npn \__ekeys_if_digit:nTF #1
   {
-    \if_int_compare:w 0
-      \if_case:w 1#1 \or: \or: \or: \or: \or: \or: \or: \or: \or: \else: 1 \fi:
-      = \c_zero_int
-      \exp_after:wN \use_ii:nn
-    \else: \exp_after:wN \use_i:nn \fi:
+    \if_int_compare:w 9 < 1 #1 \exp_stop_f:
+      \exp_after:wN \use_i:nn
+    \else: 
+      \exp_after:wN \use_ii:nn 
+    \fi:
   }
 \cs_new:Npn \__ekeys_count:n #1 % len(#1)<=9
   { \exp:w \exp_end_continue_f:w \__ekeys_count_aux:w #1 9876543210 \q__ekeys_stop }
