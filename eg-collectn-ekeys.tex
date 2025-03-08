@@ -67,17 +67,19 @@
 \usepackage{nameref,varioref,cleveref}
 \usepackage{fancyvrb}
 \usepackage[many,listings]{tcolorbox}
+\makeatletter
 \usepackage{texhigh}
-\tcbset{l3code/.style={texhigh use ctab={latex3code}}}
-\SetKeys[texhigh]{
+\tcbset{eg listing/.style={listing engine=texhigh}, l3code/.style={texhigh use ctab={latex3code}}}
+\SetKeys[texhigh/high]{
   font=\ttfamily\xeCJKsetup{CJKecglue={\hskip 0pt plus 0.08\baselineskip}},
   config-file=ekeys.texhigh.cfg,
 }
-\makeatletter
-\THSetClassCS{cus.ekeys.doc}{{\color{red5}\bfseries#1\itshape#2}}
-\THSetClassCS{cus.ekeys.l3}{{\color{red5}\bfseries#1\itshape#2}}
-\THSetClassCS{cus.collectn}{{\color{red5}\bfseries#1\itshape#2}}
-\THSetClassCS{cus.elkernel}{{\color{red5}\bfseries#1\itshape#2}}
+\THSetClassCS[]{cus.ext}{\mbox{\THcolor{blue!80!black}\bfseries
+  \transparent{0.7}\texhigh@underline{\transparent{1}#1#2}}}
+\texhighsetclassfallback{cs}{cus.ekeys.doc}{cus.ext, latex}
+\texhighsetclassfallback{cs}{cus.ekeys.l3}{cus.ext, latex}
+\texhighsetclassfallback{cs}{cus.collectn}{cus.ext, latex}
+\texhighsetclassfallback{cs}{cus.elkernel}{cus.ext, latex}
 \makeatother
 \newcounter{example}
 \newtcblisting[use counter=example, number format=\arabic, crefname={代码}{代码}]
@@ -96,7 +98,7 @@
   coltitle=blue!90!black, fonttitle=\bfseries,
   before skip balanced=2bp plus .5\baselineskip,
   after skip balanced=2bp plus .5\baselineskip,
-  listing engine=texhigh,
+  eg listing,
   breakable,
   #1
 }
@@ -197,7 +199,7 @@
 
 \pkg{lt3ekeyscmd} 和 \pkg{lt3ekeysext} 这两个宏包提供了一个定义命令的新接口。
 它的使用方式类似于 \pkg{ltcmd} 的 \cs{DeclareDocumentCommand}，功能更加丰富的同时
-也更加复杂。本文介绍详细介绍一下这两个宏包以及它们的前置宏包——\pkg{collectn}，
+也更加复杂。本文将详细介绍一下这两个宏包以及它们的前置宏包——\pkg{collectn}，
 这个宏包在定义获取特殊的参数的命令时是非常有用的。
 
 以下称由 \cs{NewDocumentCommand} 系列命令定义的命令为 \veta{document-cmd}，
