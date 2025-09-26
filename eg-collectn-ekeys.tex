@@ -1,6 +1,6 @@
 % !TEX options=--synctex=1 --shell-escape --interaction=nonstopmode %DOCFILE%
 % !TEX program=xelatex
-\DocumentMetadata{}
+\DocumentMetadata{lang=cn}
 \documentclass[openany]{book}
 \InputIfFileExists{eg-config.tex}{}{}
 \usepackage{amsmath,amssymb}
@@ -74,7 +74,7 @@
   font=\ttfamily\xeCJKsetup{CJKecglue={\hskip 0pt plus 0.08\baselineskip}},
   config-file=ekeys.texhigh.cfg,
 }
-\THSetClassCS[]{cus.ext}{\mbox{\THcolor{blue!80!black}\bfseries
+\THSetCS[]{cus.ext}{\mbox{\THcolor{blue!80!black}\bfseries
   \transparent{0.7}\texhigh@underline{\transparent{1}#1#2}}}
 \texhighsetclassfallback{cs}{cus.ekeys.doc}{cus.ext, latex}
 \texhighsetclassfallback{cs}{cus.ekeys.l3}{cus.ext, latex}
@@ -259,20 +259,20 @@
 
 通用命令钩子就是形如 
 \hook{cmd/\meta{cmd name}/before} 或 \hook{cmd/\meta{cmd name}/after}
-的钩子。通用命令钩子无需声明即可使用。前者在命令最开始时执行，后者在命令最末尾执行。
+的钩子。通用命令钩子无需创建即可使用。前者在命令最开始时执行，后者在命令最末尾执行。
 
 \cs{AddToHook}、\cs{AddToHookWithArguments}、\cs{AddToHookNext}、
 \cs{AddToHookNextWithArguments} 这四个命令用于给通用命令钩子添加代码。
-对于没有声明的命令钩子，可以
+对于没有创建的命令钩子，可以
 自动为命令添加使用钩子的代码 \cs[break-at-any]{UseHookWithArguments}（本文称为自动“修补”），
 同样支持由 \cs{newcommand}、\cs{DeclareRobustCommand} 定义的命令，
 以及 \veta{document-cmd} 和 \veta{ekeys-cmd}。
 
 不过自动添加 \cs{UseHookWithArguments} 并非总会执行。
 \begin{itemize}
-  \item 对于已经声明的命令钩子，不会自动添加 \cs{UseHookWithArguments};
+  \item 对于已经创建的命令钩子，不会自动添加 \cs{UseHookWithArguments}。因此自动“修补”最多只执行一次，因为在自动修补时会创建这个钩子；
   \item 对于在导言区使用的 \cs{AddToHook} 系列命令，自动修补在 \hook{begindocument} 钩子中才会执行；
-  \item 对于在正文区使用的 \cs{AddToHook} 系列命令，自动修补仅执行一次，命令重定义以后不会再执行自动修补，因为已经自动声明了这个钩子。
+  \item 如果已经执行了自动修补，命令重定义时不会再执行自动修补，因为已经自动创建了这个钩子，需要自行添加 \cs{UseHookWithArguments}。
 \end{itemize}
 
 自动修补并不总是有效，有时甚至会导致严重的错误。例如：
@@ -289,16 +289,33 @@
 \newcommand\fancybox{\@ifnextchar({\@fancybox}{\@fancybox(5cm)}%
   \UseHookWithArguments{cmd/fancybox/after}{0}}
 \end{Verbatim}
-会导致严重的错误。
+这样，\verb|\@fancybox{text}| 获取的参数会是 \cs{UseHookWithArguments}，而不是 \verb|text|。
+会出现严重的错误。
 
-因此若要使用命令钩子，最佳实践是在定义命令时就加上 \cs{UseHookWithArguments}：
+因此若要使用命令钩子，比较好的做法是在定义命令时就加上 \cs{UseHookWithArguments}：
 \begin{Verbatim}
 \newcommand\fancybox{\@ifnextchar({\@fancybox}{\@fancybox(5cm)}}
 \def\@fancybox(#1)#2{\fbox{%
   \UseHookWithArguments{cmd/fancybox/before}{2}{#1}{#2}%
   \parbox{#1}{#2}%
   \UseHookWithArguments{cmd/fancybox/after}{2}{#1}{#2}}}
+% 不要忘记在导言区（或宏包/文档类代码中）创建钩子！
+\NewHookWithArguments{cmd/fancybox/before}{2}
+\NewReversedHookWithArguments{cmd/fancybox/after}{2}
 \end{Verbatim}
+
+通常情况下，只有宏不把其需要的所有参数都写到其 \BNFN{parameter text} 中时才需要手动添加 \cs{UseHookWith\-Arguments}。如
+\begin{Verbatim}
+\def\a#1#2{(#1;#2)} \newcommand{\foo}[1]{\a{#1}}
+% 自动修补后变成了
+\renewcommand{\foo}[1]{%
+  \UseHookWithArguments{cmd/foo/before}{1}{#1}%
+  \a{#1}%
+  \UseHookWithArguments{cmd/foo/after}{1}{#1}%
+}
+\end{Verbatim}
+由于 \verb|\a| 需要两个参数，但在 \tn{foo} 中只给了一个参数，\verb|\a| 只能把 \cs{UseHookWithArguments} 作为它的第二个参数了，这显然是错误的。
+如果是 \verb|\newcommand{\foo}[2]{\a{#1}{#2}}| 就没有这样的问题。
 
 当然，使用了 \cs{UseHookWithArguments} 后需要更长的执行时间，具体如何做就需要自行斟酌了。
 
