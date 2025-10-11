@@ -18,7 +18,7 @@
 % lt3ekeys.tex and lt3ekeys-usrguide-cn.tex.
 %
 \NeedsTeXFormat{LaTeX2e}[2023/06/01]
-\ProvidesExplPackage{lt3ekeyscmd}{2024/04/25}{v0.2e}{define a command}
+\ProvidesExplPackage{lt3ekeyscmd}{2025/10/10}{v0.2f}{define a command}
 \RequirePackage{lt3ekeys-collectn}
 
 \seq_new:N \l__ekeys_restore_seq 
@@ -1232,3 +1232,10 @@
 \tl_gput_right:Nn \g_hook_patch_action_list_tl
   { { \__ekeys_if_cmd:NTF \__ekeys_patch_ekeys_cmd:Nnn } }
 
+\cs_new:Npn \ekeys_cmd_arg_spec:N #1
+  {
+    \__ekeys_if_cmd:NTF #1
+      { \exp_last_unbraced:Nv \__ekeys_cmd_arg_spec:w { \cs_to_str:N #1 ~spec~ } }
+      { X }
+  }
+\cs_new:Npn \__ekeys_cmd_arg_spec:w #1; #2\s__ekeys_stop { \exp_not:n }
